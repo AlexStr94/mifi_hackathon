@@ -101,6 +101,10 @@ class Transaction(models.Model):
         on_delete=models.PROTECT,
         related_name="received_transactions",
     )
+    receiver_inn = models.CharField(
+        "ИНН",
+        max_length=12,
+    )
     receiver_phone = models.CharField(
         "Телефон получателя",
         max_length=18,

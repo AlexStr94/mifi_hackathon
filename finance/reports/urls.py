@@ -5,7 +5,6 @@ from . import views
 app_name = 'reports'
 
 urlpatterns = [
-    path('', views.report, name='report'),
-    path('pdf/', views.pdf, name='pdf'),
-    path('pdf2/', views.render_pdf_view, name='test_view'),
+    path('', views.ReportView.as_view(), name='report'),
+    path('pdf/', views.PdfView.as_view(), name='pdf'),
 ]
