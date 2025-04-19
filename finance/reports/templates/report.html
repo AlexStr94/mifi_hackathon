@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %} Главная {% endblock %}
+
+{% block content %}
+<div class='mt-5'>Здесь предполагается блок с отчетами</div>
+
+<div class="position-absolute top-50 start-50">
+    <form action="{% url 'reports:pdf' %}" method="post">
+        {% csrf_token %}
+        <button type="button submit" class="btn btn-primary">Скачать отчет</button>
+    </form>
+</div>
+{% endblock %}

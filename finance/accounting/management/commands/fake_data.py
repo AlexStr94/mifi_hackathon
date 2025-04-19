@@ -54,7 +54,7 @@ class Command(BaseCommand):
             part1 = random.randint(100, 999)
             part2 = random.randint(10, 99)
             part3 = random.randint(10, 99)
-            phone =  f"+7 ({code}) {part1}-{part2}-{part3}"
+            phone = f"+7 ({code}) {part1}-{part2}-{part3}"
             transactions.append(
                 Transaction(
                     user=self.user,
@@ -66,6 +66,7 @@ class Command(BaseCommand):
                     status=random.choice(Transaction.TRANSACTION_STATUSES)[0],
                     sender_bank=self.bank,
                     receiver_bank=self.bank,
+                    receiver_inn="123456789010",
                     receiver_phone=phone,
                     category=self.category,
                 )
