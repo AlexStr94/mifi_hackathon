@@ -3,14 +3,11 @@
 {% block title %} All transactions {% endblock %}
 
 {% block content %}
-<table class="table mt-5 table-boarderd table-striped table-hover">
+<table class="table mt-5 table-bordered table-striped table-hover">
     <thead class="table-dark">
         <tr>
-            <th>Пользователь</th>
-            <th>Тип лица</th>
             <th>Дата и время операции</th>
-            <th>Тип транзакции</th>
-            <th>Комментарий к операции</th>
+            {% comment %} <th>Тип транзакции</th> {% endcomment %}
             <th>Сумма</th>
             <th>Статус операции</th>
             <th>Банк отправителя</th>
@@ -20,25 +17,30 @@
             <th>Расчетный счет получателя</th>
             <th>Телефон получателя</th>
             <th>Категория</th>
+            <th>Комментарий к операции</th>
         </tr>
     </thead>
     <tbody>
         {% for transaction in page_obj %}
         <tr>
-            <td>{{ transaction.user }}</td>
-            <td>{{ transaction.type_person }}</td>
-            <td>{{ transaction.date_time }}</td>
-            <td>{{ transaction.transaction_type }}</td>
-            <td>{{ transaction.comment }}</td>
-            <td>{{ transaction.amount }}</td>
-            <td>{{ transaction.status }}</td>
-            <td>{{ transaction.sender_bank }}</td>
-            <td>ПУСТО</td>
-            <td>{{ transaction.receiver_bank }}</td>
-            <td>ПУСТО</td>
-            <td>ПУСТО</td>
+            <td style="white-space: nowrap;">{{ transaction.date_time|date:"d.m.Y H:i" }}</td>
+            {% comment %} <td>{{ transaction.get_transaction_type_display }}</td> {% endcomment %}
+            <td 
+            class="{% if transaction.transaction_type == 'entry' %}text-success{% elif transaction.transaction_type == 'write-off' %}text-danger{% endif %}"
+            style="white-space: nowrap;" >
+                {% if transaction.transaction_type == 'entry' %}+{% elif transaction.transaction_type == 'write-off' %}-{% endif %}
+                {{ transaction.amount|floatformat:2 }}
+            </td>
+            <td>{{ transaction.get_status_display }}</td>
+            <td>{{ transaction.sender_bank.name }}</td>
+            <td>Не указано</td>
+            <td>{{ transaction.receiver_bank.name }}</td>
+            <td>{{ transaction.receiver_inn }}</td>
+            <td>Не указано</td>
             <td>{{ transaction.receiver_phone }}</td>
-            <td>{{ transaction.category }}</td>
+            <td>{{ transaction.category.name }}</td>
+            <td>{{ transaction.comment }}</td>
+
         </tr>
         {% endfor %}
     </tbody>
@@ -51,7 +53,7 @@
         {% endif %}
 
         {% for i in page_obj.paginator.page_range %}
-            {% if i >= page_obj.number|add:'-1' and i <= page_obj.number|add:'1' %}
+            {% if i >= page_obj.number|add:'-2' and i <= page_obj.number|add:'2' %}
                 {% if i == page_obj.number %}
                     <li class="page-item active"><span class="page-link">{{ i }}</span></li>
                 {% else %}

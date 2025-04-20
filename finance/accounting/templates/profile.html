@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %} Профиль {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <img src="{{ user.avatar_url }}" class="card-img-top" alt="Аватар пользователя">
+                <div class="card-body">
+                    <h5 class="card-title">{{ user.username }}</h5>
+                    <p class="card-text">{{ user.bio }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <h2>Информация о профиле {{ user.username }}</h2>
+            <p><b>Имя:</b> {{ user.first_name }} {{ user.last_name }}</p>
+            <p><b>Email:</b> {{ user.email }}</p>
+            <p><b>Дата регистрации:</b> {{ user.date_joined|date:"d.m.Y H:i" }}</p>
+
+            <h2 class="mt-4">Доходы и расходы</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card text-white bg-success mb-3">
+                        <div class="card-header">Доходы</div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ total_income }} ₽</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card text-white bg-danger mb-3">
+                        <div class="card-header">Расходы</div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ total_expenses }} ₽</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="mt-4">Последние транзакции</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Описание</th>
+                        <th>Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.date_time|date:"d.m.Y H:i" }}</td>
+                        <td>{{ transaction.comment }}</td>
+                        <td class="{% if transaction.transaction_type == 'entry' %}text-success{% else %}text-danger{% endif %}">
+                            {{ transaction.amount }} €
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-end mt-4">
+                <a href="{% url 'accounting:transactions' %}" class="btn btn-primary">
+                    Все транзакции <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
