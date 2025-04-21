@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+
+{% block title %} Главная {% endblock %}
+
+{% block content %}
+{% comment %} <h1 class="visually-hidden">ФинАпп</h1> {% endcomment %}
+
+<div class="px-4 py-5 my-2 text-center">
+  <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" fill="currentColor" class="bi bi-graph-up-arrow" viewBox="0 0 16 16">
+    <path fill-rule="evenodd" d="M0 0h1v15h15v1H0zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5"/>
+  </svg>
+  <h1 class="display-5 fw-bold">ФинАпп</h1>
+  <div class="col-lg-6 mx-auto">
+    <p class="lead mb-4">Быстро и эффективно управляйте своими финансами с помощью нашего приложения для учета финансов. 
+        Отслеживайте транзакции, получайте подробные отчеты, планируйте бюджет и контролируйте расходы
+        с помощью интуитивно понятного интерфейса и мощных инструментов аналитики.</p>
+    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+      <a href="{% url 'accounting:profile' %}" class="btn btn-primary btn-lg px-4 gap-3">Попробовать учет финансов</a>
+    </div>
+  </div>
+</div>
+
+<div class="container px-4 py-2" id="featured-3">
+    <h2 class="pb-2 border-bottom">Основные функции</h2>
+    <div class="row g-4 py-2 row-cols-1 row-cols-lg-3">
+      <div class="feature col">
+        <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3">
+            <i class="bi bi-pencil-square"></i>
+        </div>
+        <h3 class="fs-2">Удобный ввод и категоризация данных</h3>
+        <p>Легко добавляйте свои доходы и расходы, распределяя их по категориям, чтобы всегда быть в курсе своих финансов.</p>
+      </div>
+      <div class="feature col">
+        <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3">
+          <i class="bi bi-hypnotize"></i>
+        </div>
+        <h3 class="fs-2">Интерактивная визуализация</h3>
+        <p>Получайте наглядные графики и диаграммы, которые помогут вам лучше понять свои финансовые показатели и динамику изменений.</p>
+      </div>
+      <div class="feature col">
+        <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3">
+          <i class="bi bi-clipboard2-data"></i>
+        </div>
+        <h3 class="fs-2">Персональные отчеты <br> и анализ тенденций</h3>
+        <p>Генерируйте детализированные отчеты за любые периоды, чтобы принимать обоснованные решения и улучшать свое финансовое состояние.</p>
+      </div>
+    </div>
+  </div>
+{% endblock %}

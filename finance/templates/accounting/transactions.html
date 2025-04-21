@@ -1,10 +1,29 @@
 {% extends 'base.html' %}
 
+{% block transactions %}active{% endblock %}
+
+
 {% block title %} All transactions {% endblock %}
 
+{% block style %}
+    .table_custom th{ 
+        color: rgba(255, 255, 255, 1);
+        background-color:rgba(13, 110, 253, 1);
+        text-align: center;
+        vertical-align: middle;
+        table-hover-bg-factor: rgba(13, 110, 253, 1);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #007bff;
+        color: white; 
+    }
+{% endblock %}     
+
+
 {% block content %}
-<table class="table mt-5 table-bordered table-striped table-hover">
-    <thead class="table-dark">
+<table class="table mt-5 table-bordered border-secondary table-striped table-hover">
+    <thead class="table_custom">
         <tr>
             <th>Дата и время операции</th>
             {% comment %} <th>Тип транзакции</th> {% endcomment %}

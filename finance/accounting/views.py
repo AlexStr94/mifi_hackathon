@@ -1,14 +1,20 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, TemplateView
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
 
 from .models import Transaction
 
+def logout_view(request):
+    logout(request)
+    return redirect('accounting:index')
 
-class IndexView(LoginRequiredMixin, TemplateView):
-    template_name = "index.html"
+class IndexView(TemplateView):
+    template_name = "accounting/index.html"
 
 class ProfileView(LoginRequiredMixin, TemplateView):
-    template_name = "profile.html"
+    template_name = "accounting/profile.html"
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -33,10 +39,11 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         # Возвращаем контекст 
         return context
 
-class TransactionListView(ListView):
+class TransactionListView(LoginRequiredMixin, ListView):
     model = Transaction
-    template_name = "transactions.html"
-    paginate_by = 25
+    template_name = "accounting/transactions.html"
+    paginate_by = 10
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
+
