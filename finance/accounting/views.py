@@ -46,12 +46,14 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         # Вычисляем общие доходы и расходы
         total_income = round(sum(t.amount for t in transactions if t.transaction_type == 'entry'), 2)
         total_expenses = round(sum(t.amount for t in transactions if t.transaction_type == 'write-off'), 2)
+        balance = total_income - total_expenses
 
 
         # Добавляем данные в контекст      
         context['transactions'] = last_transactions       
         context['total_income'] = total_income
         context['total_expenses'] = total_expenses
+        context['balance'] = balance
 
         # Возвращаем контекст 
         return context

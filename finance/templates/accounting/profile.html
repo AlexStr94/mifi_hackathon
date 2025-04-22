@@ -21,17 +21,31 @@
 
             <h2 class="mt-3">Доходы и расходы</h2>
             <div class="row">
-                <div class="col-md-6">
-                    <div class="card text-white bg-success mb-3">
-                        <div class="card-header">Доходы</div>
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-white bg-primary">Баланс</div>
+                        <div class="card-body">
+                            <h5 class="card-title 
+                            {% if balance < 0 %}
+                                text-danger
+                            {% else %}
+                                text-success
+                            {% endif %}
+                            ">{{ balance }} ₽</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-white bg-success">Доходы</div>
                         <div class="card-body">
                             <h5 class="card-title">{{ total_income }} ₽</h5>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card text-white bg-danger mb-3">
-                        <div class="card-header">Расходы</div>
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-white bg-danger">Расходы</div>
                         <div class="card-body">
                             <h5 class="card-title">{{ total_expenses }} ₽</h5>
                         </div>
