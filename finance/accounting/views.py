@@ -1,7 +1,9 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, TemplateView
 from django.contrib.auth import logout
-from django.shortcuts import redirect
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .forms import UserRegisterForm
 
 
 from .models import Transaction
@@ -9,6 +11,21 @@ from .models import Transaction
 def logout_view(request):
     logout(request)
     return redirect('accounting:index')
+
+def register(request):
+    if request.method == 'POST':
+        form = UserRegisterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Вы успешно зарегистрировались!')
+            username = form.cleaned_data.get('username')
+            messages.success(request, f'Создан аккаунт {username}!')
+            return redirect('accounting:profile')
+        else:
+            return render(request, 'registration/register.html', {'form': form})
+    else:
+        form = UserRegisterForm()
+        return render(request, 'registration/register.html', {'form': form})
 
 class IndexView(TemplateView):
     template_name = "accounting/index.html"
@@ -45,5 +62,5 @@ class TransactionListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return super().get_queryset().filter(user=self.request.user)
+        return super().get_queryset().filter(user=self.request.user).order_by("-date_time")
 

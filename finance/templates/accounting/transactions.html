@@ -32,6 +32,7 @@
             <th>Телефон получателя</th>
             <th>Категория</th>
             <th>Комментарий к операции</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -54,7 +55,29 @@
             <td>{{ transaction.receiver_phone }}</td>
             <td>{{ transaction.category.name }}</td>
             <td>{{ transaction.comment }}</td>
-
+            <td>
+                <div aria-label="Transaction operations">
+                    <button type="button" class="btn btn-secondary"><i class="bi bi-pencil-square"></i></button>
+                    <button type="button" class="btn mt-2 btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmation"><i class="bi bi-trash"></i></button>
+                    <div class="modal fade" id="deleteConfirmation" tabindex="-1" aria-labelledby="deleteConfirmationLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="exampleModalLabel">Удаление</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                              Вы точно хотите удалить транзакцию от {{ transaction.date_time|date:"d.m.Y H:i" }} на сумму {{ transaction.amount|floatformat:2 }} рублей?
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                              <button type="button" class="btn btn-danger">Удалить</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                  </div>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
