@@ -53,7 +53,10 @@ INSTALLED_APPS = [
     'users',
     'rest_framework',
     'debug_toolbar',
-    'django_filters'
+    'django_filters',
+    'widget_tweaks',
+    'crispy_forms',
+    'crispy_bootstrap5'
 ]
 
 MIDDLEWARE = [
@@ -159,3 +162,6 @@ DEBUG_TOOLBAR_CONFIG = {
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'accounting:index'
 LOGOUT_REDIRECT_URL = 'login'
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"

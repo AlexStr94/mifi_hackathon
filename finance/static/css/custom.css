@@ -1,0 +1,88 @@
+:root {
+  --primary-color: #4361ee;
+  --secondary-color: #3f37c9;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+.navbar {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.card {
+  border: none;
+  border-radius: 10px;
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(67, 97, 238, 0.05);
+}
+
+.badge {
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 8px;
+}
+/* Форма регистрации */
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.form-control {
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-bottom: 1rem;
+}
+
+.btn-primary {
+    background-color: #4e73df;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #2e59d9;
+    transform: translateY(-2px);
+}
+
+/* Валидация */
+.is-invalid {
+    border-color: #e74a3b;
+}
+
+.invalid-feedback {
+    color: #e74a3b;
+    font-size: 0.85rem;
+}
+
+/* Чекбокс согласия */
+.form-check-input {
+    margin-top: 0.3rem;
+}
+
+/* Адаптивность */
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1.5rem;
+    }
+}

@@ -1,14 +1,49 @@
-{% extends 'base.html' %}
-
-{% block title %} Главная {% endblock %}
+{% extends "base.html" %}
 
 {% block content %}
-<div class='mt-5'>Здесь предполагается блок с отчетами</div>
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-chart-pie me-2"></i> Финансовые отчёты</h2>
+    <div class="btn-group">
+      <a href="?export=pdf" class="btn btn-outline-danger">
+        <i class="fas fa-file-pdf me-1"></i> PDF
+      </a>
+    </div>
+  </div>
 
-<div class="position-absolute top-50 start-50">
-    <form action="{% url 'reports:pdf' %}" method="post">
-        {% csrf_token %}
-        <button type="button submit" class="btn btn-primary">Скачать отчет</button>
-    </form>
+  <!-- Графики -->
+  <div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Динамика транзакций</h5>
+        </div>
+        <div class="card-body">
+          {{ dynamic_chart|safe }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Соотношение доходов/расходов</h5>
+        </div>
+        <div class="card-body">
+          {{ income_chart|safe }}
+          <div class="mt-3">
+            <div class="d-flex justify-content-between">
+              <span class="text-success">
+                <i class="fas fa-arrow-up me-1"></i> Доходы: {{ income|intcomma }} ₽
+              </span>
+              <span class="text-danger">
+                <i class="fas fa-arrow-down me-1"></i> Расходы: {{ expense|intcomma }} ₽
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
