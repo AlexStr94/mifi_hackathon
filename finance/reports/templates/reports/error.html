@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="alert alert-danger">
+        <h4>Ошибка при формировании отчета</h4>
+        <p>{{ error }}</p>
+        <a href="{% url 'reports:report' %}" class="btn btn-primary">Попробовать снова</a>
+    </div>
+</div>
+{% endblock %}

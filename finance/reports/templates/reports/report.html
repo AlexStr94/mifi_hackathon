@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">Финансовые отчёты</h1>
+
+    <div class="btn-group mb-4">
+        <a href="?period=week" class="btn btn-outline-secondary {% if period == 'week' %}active{% endif %}">Неделя</a>
+        <a href="?period=month" class="btn btn-outline-secondary {% if period == 'month' %}active{% endif %}">Месяц</a>
+        <a href="?period=quarter" class="btn btn-outline-secondary {% if period == 'quarter' %}active{% endif %}">Квартал</a>
+        <a href="?period=year" class="btn btn-outline-secondary {% if period == 'year' %}active{% endif %}">Год</a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Динамика транзакций</div>
+                <div class="card-body">
+                    {{ dynamic_chart|safe }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Соотношение поступлений и расходов</div>
+                <div class="card-body">
+                    {{ income_chart|safe }}
+                    <div class="mt-3">
+                        <p><strong>Поступления:</strong> {{ income }}</p>
+                        <p><strong>Расходы:</strong> {{ expense }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">Статистика по статусам</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Статус</th>
+                                <th>Количество</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in status_stats %}
+                            <tr>
+                                <td>{{ stat.status }}</td>
+                                <td>{{ stat.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">Топ банков-отправителей</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Банк</th>
+                                <th>Количество</th>
+                                <th>Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bank in sender_banks %}
+                            <tr>
+                                <td>{{ bank.sender_bank__name }}</td>
+                                <td>{{ bank.count }}</td>
+                                <td>{{ bank.total }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-3">
+        <a href="?export=pdf" class="btn btn-primary">Экспорт в PDF</a>
+    </div>
+</div>
+{% endblock %}

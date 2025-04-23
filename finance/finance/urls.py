@@ -17,12 +17,22 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .api import TransactionViewSet
+from django.contrib.auth import views as auth_views
+
+router = DefaultRouter()
+router.register(r'transactions', TransactionViewSet)
 
 urlpatterns = [
+    path('api/', include(router.urls)),
     path('admin/', admin.site.urls),
+    path('accounts/', include('users.urls')),
     path("accounts/", include("django.contrib.auth.urls")),
     path('', include('accounting.urls')),
     path('reports/', include('reports.urls')),
+    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login')
 ]
 
 if settings.DEBUG:

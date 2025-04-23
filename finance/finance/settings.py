@@ -47,10 +47,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "debug_toolbar",
-    'users',
+    ##"debug_toolbar",
     'accounting',
-    'reports'
+    'reports',
+    'users',
+    'rest_framework',
+    'debug_toolbar',
+    'django_filters'
 ]
 
 MIDDLEWARE = [
@@ -63,6 +66,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
 
 ROOT_URLCONF = 'finance.urls'
 
@@ -96,7 +104,7 @@ DATABASES = {
         'USER': os.getenv('POSTGRES_USER', 'postgres'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', 5432)
+        'PORT': os.getenv('DB_PORT', 5433)
     }
 }
 
@@ -142,3 +150,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Debug Toolbar Settings
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: DEBUG,
+}
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'accounting:index'
+LOGOUT_REDIRECT_URL = 'login'
