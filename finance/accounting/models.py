@@ -80,6 +80,7 @@ class Transaction(models.Model):
     comment = models.CharField(
         "Комментарий к операции.",
         max_length=500,
+        blank=True
     )
     amount = models.DecimalField(
         "Сумма транзакции.",
