@@ -77,52 +77,93 @@
                         </div>
                       </div>
                     <div class="modal fade" id="correctTransaction" tabindex="-1" aria-labelledby="correctTransactionLabel" aria-hidden="true">
-                        <div class="modal-dialog">
+                        <div class="modal-dialog modal-lg">
                           <div class="modal-content">
                             <div class="modal-header">
-                              <h5 class="modal-title" id="exampleModalLabel">Изменение транзакции</h5>
+                              <h5 class="modal-title fw-bold" id="exampleModalLabel">Изменение транзакции</h5>
                               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
+                            <div class="d-flex flex-row">
+                              <div class="d-flex flex-column p2 w-50">
+                                <label for="basic-url" class="form-label fw-bold"> Тип лица: </label>
                                 <div class="input-group mb-3">
-                                    <span class="input-group-text" id="basic-addon1">@</span>
-                                    <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+                                  <select class="form-select">
+                                    <option selected>Выберете тип лица</option>
+                                    <option value="1">Физическое лицо</option>
+                                    <option value="2">Юридическое лицо</option>
+                                  </select>                                  
+                                </div>
+                              </div>
+                              <span class="mx-4" ></span>         
+                              <div class="d-flex flex-column p2 w-50">
+                                <label for="basic-url" class="form-label fw-bold"> Cтатус операции: </label>
+                                <div class="input-group mb-3">
+                                  <select class="form-select">
+                                    <option selected>Выберете статус операции</option>
+                                    <option value="1">Новая</option>
+                                    <option value="2">Подтвержденная</option>
+                                    <option value="2">В обработке</option>
+                                    <option value="2">Отменена</option>
+                                    <option value="2">Платеж выполнен</option>
+                                    <option value="2">Платеж удален</option>
+                                    <option value="2">Возврат</option>
+                                  </select>                                  
+                                </div>
+                              </div>
+                            </div>
+                                <div class="d-flex flex-row">
+                                  <div class="d-flex flex-column p2 w-50">
+                                    <label for="amount" class="form-label fw-bold"> Cумма операции: </label>
+                                    <div class="input-group ">
+                                     <span class="input-group-text">₽</span>
+                                     <input type="text" class="form-control" placeholder="00.00">
+                                    </div>   
                                   </div>
-                                  
-                                  <div class="input-group mb-3">
-                                    <input type="text" class="form-control" placeholder="Recipient's username" aria-label="Recipient's username" aria-describedby="basic-addon2">
-                                    <span class="input-group-text" id="basic-addon2">@example.com</span>
-                                  </div>
-                                  
-                                  <div class="mb-3">
-                                    <label for="basic-url" class="form-label">Your vanity URL</label>
-                                    <div class="input-group">
-                                      <span class="input-group-text" id="basic-addon3">https://example.com/users/</span>
-                                      <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3 basic-addon4">
+                                  <span class="mx-4" ></span>         
+                                  <div class="d-flex flex-column ms-4">
+                                    <label for="basic-url" class="form-label fw-bold"> Время операции: </label>
+                                    <div class="d-flex flex-row">
+                                      <span class="me-2 mt-1" id="date">Дата:</span>
+                                      <input type="text" class="form-control" placeholder="01">
+                                      <input type="text" class="form-control" placeholder="01">
+                                      <input type="text" class="form-control" placeholder="2025">
+                                      <span class="ms-4 me-2 mt-1" id="time">Время: </span>
+                                      <input type="text" class="form-control" placeholder="00">
+                                      <label for="basic-url" class="form-label px-2"> : </label>
+                                      <input type="text" class="form-control" placeholder="00">
                                     </div>
-                                    <div class="form-text" id="basic-addon4">Example help text goes outside the input group.</div>
+                                   </div>  
                                   </div>
-                                  
-                                  <div class="input-group mb-3">
-                                    <span class="input-group-text">$</span>
-                                    <input type="text" class="form-control" aria-label="Amount (to the nearest dollar)">
-                                    <span class="input-group-text">.00</span>
-                                  </div>
-                                  
-                                  <div class="input-group mb-3">
-                                    <input type="text" class="form-control" placeholder="Username" aria-label="Username">
-                                    <span class="input-group-text">@</span>
-                                    <input type="text" class="form-control" placeholder="Server" aria-label="Server">
-                                  </div>
-                                  
-                                  <div class="input-group">
-                                    <span class="input-group-text">With textarea</span>
-                                    <textarea class="form-control" aria-label="With textarea"></textarea>
-                                  </div>
+                           
+                                <label for="basic-url" class="form-label mt-2 fw-bold"> Банк отправителя: </label>
+                                <div class="input-group mb-3">
+                                  <input type="text" class="form-control" placeholder="Название банка">
+                                </div>
+                                <label for="basic-url" class="form-label fw-bold"> Банк получателя: </label>
+                                <div class="input-group mb-3">
+                                  <input type="text" class="form-control" placeholder="Название банка">
+                                </div>
+                                <label for="basic-url" class="form-label fw-bold"> ИНН: </label>
+                                <div class="input-group mb-3">
+                                  <input type="text" class="form-control" placeholder="012345678910">
+                                </div>
+                                <label for="basic-url" class="form-label fw-bold"> Категории: </label>
+                                <div class="input-group mb-3">
+                                  <input type="text" class="form-control" placeholder="Название категории">
+                                </div>
+                                <label for="basic-url" class="form-label fw-bold"> Номер телефона: </label>
+                                <div class="input-group mb-3">
+                                  <input type="text" class="form-control" placeholder="+7 (123) 456-78-90">
+                                </div>
+                                <label for="basic-url" class="form-label fw-bold"> Комментарий : </label>
+                                <div class="input-group">
+                                  <textarea class="form-control" aria-label="With textarea"></textarea>
+                                </div>                               
                             </div>
                             <div class="modal-footer">
                               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                              <button type="button" class="btn btn-danger">Удалить</button>
+                              <button type="button" class="btn btn-success">Сохранить</button>
                             </div>
                           </div>
                         </div>
