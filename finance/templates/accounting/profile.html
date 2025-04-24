@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block profile %}active{% endblock %}
+
+{% block title %} Профиль {% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" fill="currentColor" class="bi bi-person-bounding-box" viewBox="0 0 16 16">
+                <path d="M1.5 1a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3A1.5 1.5 0 0 1 1.5 0h3a.5.5 0 0 1 0 1zM11 .5a.5.5 0 0 1 .5-.5h3A1.5 1.5 0 0 1 16 1.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 1-.5-.5M.5 11a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 0 14.5v-3a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a.5.5 0 0 1 0-1h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 1 .5-.5"/>
+                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+              </svg>
+        </div>
+        <div class="col-md-8">
+            <h2>Информация о профиле {{ user.username }}</h2>
+            <p><b>Имя:</b> {{ user.first_name }} {{ user.last_name }}</p>
+            <p><b>Email:</b> {{ user.email }}</p>
+            <p><b>Дата регистрации:</b> {{ user.date_joined|date:"d.m.Y H:i" }}</p>
+
+            <h2 class="mt-3">Доходы и расходы</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-white bg-primary">Баланс</div>
+                        <div class="card-body">
+                            <h5 class="card-title 
+                            {% if balance < 0 %}
+                                text-danger
+                            {% else %}
+                                text-success
+                            {% endif %}
+                            ">{{ balance }} ₽</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-white bg-success">Доходы</div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ total_income }} ₽</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-white bg-danger">Расходы</div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ total_expenses }} ₽</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="mt-3">Последние транзакции</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Описание</th>
+                        <th>Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.date_time|date:"d.m.Y H:i" }}</td>
+                        <td>{{ transaction.comment }}</td>
+                        <td class="{% if transaction.transaction_type == 'entry' %}text-success{% else %}text-danger{% endif %}">
+                            {{ transaction.amount }} ₽
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-end mt-4">
+                <a href="{% url 'accounting:transactions' %}" class="btn btn-primary">
+                    Все транзакции <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

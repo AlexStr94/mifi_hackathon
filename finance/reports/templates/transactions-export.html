@@ -9,25 +9,33 @@
       table {  
         font-family: Arial; 
         border-collapse: collapse;
+        text-align: center;
+        vertical-align: middle;
+        height: 50px;
         }
-      th {
-        background-color: gray;
+      .table_custom th{ 
+          color: rgb(255, 255, 255);
+          background-color:rgb(13, 110, 253);
+          text-align: center;
+          vertical-align: middle;
+          
+        }
+
+      .table_custom tr{
+          border: 1px solid #dee2e6;
       }
-      tr {
-        background-color: #f2f2f2;
-      }
+
+
+
 </style>
   </head>
   <title>All transactions</title>
   <body>
-    <table repeat="1">
+    <table class="table_custom" repeat="1">
       <thead>
             <tr>
-                <th>Пользователь</th>
-                <th>Тип лица</th>
                 <th>Дата и время операции</th>
-                <th>Тип транзакции</th>
-                <th>Комментарий к операции</th>
+                {% comment %} <th>Тип транзакции</th> {% endcomment %}
                 <th>Сумма</th>
                 <th>Статус операции</th>
                 <th>Банк отправителя</th>
@@ -37,17 +45,20 @@
                 <th>Расчетный счет получателя</th>
                 <th>Телефон получателя</th>
                 <th>Категория</th>
+                <th>Комментарий к операции</th>
             </tr>
         </thead>
         <tbody>
             {% for transaction in transactions %}
             <tr>
-                <td>{{ transaction.user }}</td>
-                <td>{{ transaction.type_person }}</td>
-                <td>{{ transaction.date_time }}</td>
-                <td>{{ transaction.transaction_type }}</td>
-                <td>{{ transaction.comment }}</td>
-                <td>{{ transaction.amount }}</td>
+                <td style="white-space: nowrap;">{{ transaction.date_time|date:"d.m.Y H:i" }}</td>
+                {% comment %} <td>{{ transaction.transaction_type }}</td> {% endcomment %}
+                <td 
+                class=""
+                style="white-space: nowrap; color: {% if transaction.transaction_type == 'entry' %}green{% elif transaction.transaction_type == 'write-off' %}red{% endif %}" >
+                    {% if transaction.transaction_type == 'entry' %}+{% elif transaction.transaction_type == 'write-off' %}-{% endif %}
+                    {{ transaction.amount|floatformat:2 }}
+                </td>
                 <td>{{ transaction.status }}</td>
                 <td>{{ transaction.sender_bank }}</td>
                 <td>ПУСТО</td>
@@ -56,6 +67,7 @@
                 <td>ПУСТО</td>
                 <td>{{ transaction.receiver_phone }}</td>
                 <td>{{ transaction.category }}</td>
+                <td>{{ transaction.comment }}</td>
             </tr>
             {% endfor %}
         </tbody>

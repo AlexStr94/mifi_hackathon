@@ -1,0 +1,379 @@
+{% extends 'base.html' %}
+
+{% block transactions %}active{% endblock %}
+
+{% block title %} All transactions {% endblock %}
+
+{% block style %}
+    .table_custom th{
+        color: rgba(255, 255, 255, 1);
+        background-color:rgba(13, 110, 253, 1);
+        text-align: center;
+        vertical-align: middle;
+    }
+{% endblock %}
+
+{% block content %}
+<div>
+  <button type="button" class="btn mt-4 btn-success" data-bs-toggle="modal" data-bs-target="#createTransaction"><i class="bi bi-plus-square"></i> Добавить транзакцию</button>
+</div>
+<table class="table mt-3 table-bordered border-secondary table-striped table-hover">
+    <thead class="table_custom">
+        <tr>
+            <th>Дата и время операции</th>
+            <th>Сумма</th>
+            <th>Статус операции</th>
+            <th>Банк отправителя</th>
+            <th>Счет поступления/списания</th>
+            <th>Банк получателя</th>
+            <th>ИНН получателя</th>
+            <th>Расчетный счет получателя</th>
+            <th>Телефон получателя</th>
+            <th>Категория</th>
+            <th>Комментарий к операции</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for transaction in page_obj %}
+        <tr>
+            <td style="white-space: nowrap;">{{ transaction.date_time|date:"d.m.Y H:i" }}</td>
+            <td class="{% if transaction.transaction_type == 'entry' %}text-success{% elif transaction.transaction_type == 'write-off' %}text-danger{% endif %}" style="white-space: nowrap;">
+                {% if transaction.transaction_type == 'entry' %}+{% elif transaction.transaction_type == 'write-off' %}-{% endif %}
+                {{ transaction.amount|floatformat:2 }}
+            </td>
+            <td>{{ transaction.get_status_display }}</td>
+            <td>{{ transaction.sender_bank.name }}</td>
+            <td>Не указано</td>
+            <td>{{ transaction.receiver_bank.name }}</td>
+            <td>{{ transaction.receiver_inn }}</td>
+            <td>Не указано</td>
+            <td style="white-space: nowrap;">{{ transaction.receiver_phone }}</td>
+            <td>{{ transaction.category.name }}</td>
+            <td>{{ transaction.comment }}</td>
+            <td>
+                <div aria-label="Transaction operations">
+                  <div class="d-flex flex-row">
+                    <button type="button" class="btn btn-warning text-white edit-transaction-btn"
+                            data-bs-toggle="modal"
+                            data-bs-target="#correctTransaction"
+                            data-transaction-id="{{ transaction.id }}"
+                            data-amount="{{ transaction.amount|floatformat:2 }}"
+                            data-date-time="{{ transaction.date_time|date:"Y-m-d\TH:i" }}"
+                            data-status="{{ transaction.status }}"
+                            data-type-person="{{ transaction.type_person }}"
+                            data-sender-bank="{{ transaction.sender_bank.name }}"
+                            data-receiver-bank="{{ transaction.receiver_bank.name }}"
+                            data-receiver-inn="{{ transaction.receiver_inn }}"
+                            data-receiver-phone="{{ transaction.receiver_phone }}"
+                            data-category="{{ transaction.category.name }}"
+                            data-comment="{{ transaction.comment }}">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button type="button" class="btn ms-2 btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmation"><i class="bi bi-trash"></i></button>
+                  </div>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="pagination">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a></li>
+        {% endif %}
+
+        {% for i in page_obj.paginator.page_range %}
+            {% if i >= page_obj.number|add:'-2' and i <= page_obj.number|add:'2' %}
+                {% if i == page_obj.number %}
+                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                {% else %}
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперед</a></li>
+        {% endif %}
+    </ul>
+</div>
+<div class="modal fade" id="deleteConfirmation" tabindex="-1" aria-labelledby="deleteConfirmationLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Удаление</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Вы точно хотите удалить транзакцию от {{ transaction.date_time|date:"d.m.Y H:i" }} на сумму {{ transaction.amount|floatformat:2 }} рублей?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-danger">Удалить</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="correctTransaction" tabindex="-1" aria-labelledby="correctTransactionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" action="">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="exampleModalLabel">Изменение транзакции</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex flex-row">
+                        <div class="d-flex flex-column p2 w-50">
+                            <label for="type_person" class="form-label fw-bold">Тип лица:</label>
+                            <div class="input-group mb-3">
+                                <select class="form-select" id="type_person" name="type_person">
+                                    <option selected>Выберете тип лица</option>
+                                    <option value="person">Физическое лицо</option>
+                                    <option value="company">Юридическое лицо</option>
+                                </select>
+                            </div>
+                        </div>
+                        <span class="mx-4"></span>
+                        <div class="d-flex flex-column p2 w-50">
+                            <label for="status" class="form-label fw-bold">Статус операции:</label>
+                            <div class="input-group mb-3">
+                                <select class="form-select" id="status" name="status">
+                                    <option selected>Выберете статус операции</option>
+                                    <option value="new">Новая</option>
+                                    <option value="confirmed">Подтвержденная</option>
+                                    <option value="in_process">В обработке</option>
+                                    <option value="canceled">Отменена</option>
+                                    <option value="completed">Платеж выполнен</option>
+                                    <option value="deleted">Платеж удален</option>
+                                    <option value="refund">Возврат</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-row">
+                        <div class="d-flex flex-column p2 w-50">
+                            <label for="amount" class="form-label fw-bold">Сумма операции:</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₽</span>
+                                <input type="text" class="form-control" id="amount" name="amount" pattern="^\d+(\.\d{1,2})?$" required>
+                            </div>
+                        </div>
+                        <span class="mx-4"></span>
+                        <div class="d-flex flex-column ms-4">
+                            <label for="date_time" class="form-label fw-bold">Время операции:</label>
+                            <div class="input-group mb-3">
+                                <input type="datetime-local" class="form-control" id="date_time" name="date_time" required>
+                            </div>
+                        </div>
+                    </div>
+                    <label for="sender_bank" class="form-label mt-2 fw-bold">Банк отправителя:</label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="sender_bank" name="sender_bank" placeholder="Название банка">
+                    </div>
+                    <label for="receiver_bank" class="form-label fw-bold">Банк получателя:</label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="receiver_bank" name="receiver_bank" placeholder="Название банка">
+                    </div>
+                    <label for="receiver_inn" class="form-label fw-bold">ИНН:</label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="receiver_inn" name="receiver_inn" pattern="\d{11}" placeholder="012345678910" required>
+                    </div>
+                    <label for="category" class="form-label fw-bold">Категории:</label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="category" name="category" placeholder="Название категории">
+                    </div>
+                    <label for="receiver_phone" class="form-label fw-bold">Номер телефона:</label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="receiver_phone" name="receiver_phone" placeholder="+7 (123) 456-78-90" required>
+                    </div>
+                    <label for="comment" class="form-label fw-bold">Комментарий:</label>
+                    <div class="input-group">
+                        <textarea class="form-control" id="comment" name="comment" aria-label="With textarea"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-success">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="createTransaction" tabindex="-1" aria-labelledby="createTransactionLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+          <form method="POST" action="">
+              {% csrf_token %}
+              <div class="modal-header">
+                  <h5 class="modal-title fw-bold" id="exampleModalLabel">Создание транзакции</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <label for="transaction_type" class="form-label fw-bold">Тип операции:</label>
+                <div class="input-group mb-3">
+                    <select class="form-select" id="transaction_type" name="transaction_type">
+                        <option selected>Выберете тип операции</option>
+                        <option value="entry">Поступление</option>
+                        <option value="write-off">Списание</option>
+                    </select>
+                </div>
+                  <div class="d-flex flex-row">
+                      <div class="d-flex flex-column p2 w-50">
+                          <label for="type_person" class="form-label fw-bold">Тип лица:</label>
+                          <div class="input-group mb-3">
+                              <select class="form-select" id="type_person" name="type_person">
+                                  <option selected>Выберете тип лица</option>
+                                  <option value="person">Физическое лицо</option>
+                                  <option value="company">Юридическое лицо</option>
+                              </select>
+                          </div>
+                      </div>
+                      <span class="mx-4"></span>
+                      <div class="d-flex flex-column p2 w-50">
+                          <label for="status" class="form-label fw-bold">Статус операции:</label>
+                          <div class="input-group mb-3">
+                              <select class="form-select" id="status" name="status">
+                                  <option selected>Выберете статус операции</option>
+                                  <option value="new">Новая</option>
+                                  <option value="confirmed">Подтвержденная</option>
+                                  <option value="in_process">В обработке</option>
+                                  <option value="canceled">Отменена</option>
+                                  <option value="completed">Платеж выполнен</option>
+                                  <option value="deleted">Платеж удален</option>
+                                  <option value="refund">Возврат</option>
+                              </select>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="d-flex flex-row">
+                      <div class="d-flex flex-column p2 w-50">
+                          <label for="amount" class="form-label fw-bold">Сумма операции:</label>
+                          <div class="input-group">
+                              <span class="input-group-text">₽</span>
+                              <input type="text" class="form-control" id="amount" name="amount" pattern="^\d+(\.\d{1,2})?$" required>
+                          </div>
+                      </div>
+                      <span class="mx-4"></span>
+                      <div class="d-flex flex-column ms-4">
+                          <label for="date_time" class="form-label fw-bold">Время операции:</label>
+                          <div class="input-group mb-3">
+                              <input type="datetime-local" class="form-control" id="date_time" name="date_time" required>
+                          </div>
+                      </div>
+                  </div>
+                  <label for="sender_bank" class="form-label mt-2 fw-bold">Банк отправителя:</label>
+                  <div class="input-group mb-3">
+                      <input type="text" class="form-control" id="sender_bank" name="sender_bank" placeholder="Название банка">
+                  </div>
+                  <label for="receiver_bank" class="form-label fw-bold">Банк получателя:</label>
+                  <div class="input-group mb-3">
+                      <input type="text" class="form-control" id="receiver_bank" name="receiver_bank" placeholder="Название банка">
+                  </div>
+                  <label for="receiver_inn" class="form-label fw-bold">ИНН:</label>
+                  <div class="input-group mb-3">
+                      <input type="text" class="form-control" id="receiver_inn" name="receiver_inn" pattern="\d{11}" placeholder="012345678910" required>
+                  </div>
+                  <label for="category" class="form-label fw-bold">Категории:</label>
+                  <div class="input-group mb-3">
+                      <input type="text" class="form-control" id="category" name="category" placeholder="Название категории">
+                  </div>
+                  <label for="receiver_phone" class="form-label fw-bold">Номер телефона:</label>
+                  <div class="input-group mb-3">
+                      <input type="text" class="form-control" id="receiver_phone" name="receiver_phone" placeholder="+7 (123) 456-78-90" required>
+                  </div>
+                  <label for="comment" class="form-label fw-bold">Комментарий:</label>
+                  <div class="input-group">
+                      <textarea class="form-control" id="comment" name="comment" aria-label="With textarea"></textarea>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                  <button type="submit" class="btn btn-success">Сохранить</button>
+              </div>
+          </form>
+      </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInputs = document.querySelectorAll('input[name="receiver_phone"]');
+
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', function(event) {
+            let value = event.target.value.replace(/\D/g, ''); // Удаляем все нечисловые символы
+
+            if (value.startsWith('8')) {
+                value = '7' + value.slice(1);
+            } else if (!value.startsWith('7')) {
+                value = '7' + value;
+            }
+
+            if (value.length > 1) {
+                value = '+7 (' + value.slice(1, 4) + ') ' + value.slice(4, 7) + '-' + value.slice(7, 9) + '-' + value.slice(9, 11);
+            } else {
+                value = '+7 (' + value.slice(1);
+            }
+
+            // Проверяем, что длина значения не превышает 18 символов
+            if (value.length > 18) {
+                value = value.slice(0, 18);
+            }
+
+            // Устанавливаем значение только если оно изменилось
+            if (event.target.value !== value) {
+                event.target.value = value;
+            }
+        });
+
+        input.addEventListener('blur', function(event) {
+            if (event.target.value.length < 18) {
+                event.target.value = ''; // Очищаем поле, если ввод неполный
+            }
+        });
+    });
+
+    // Обработчик для кнопок редактирования транзакции
+    document.querySelectorAll('.edit-transaction-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const transactionId = this.getAttribute('data-transaction-id');
+            const transactionType = this.getAttribute('data-type-person');
+            const amount = this.getAttribute('data-amount');
+            const dateTime = this.getAttribute('data-date-time');
+            const status = this.getAttribute('data-status');
+            const senderBank = this.getAttribute('data-sender-bank');
+            const receiverBank = this.getAttribute('data-receiver-bank');
+            const receiverInn = this.getAttribute('data-receiver-inn');
+            const receiverPhone = this.getAttribute('data-receiver-phone');
+            const category = this.getAttribute('data-category');
+            const comment = this.getAttribute('data-comment');
+
+            // Заполняем поля формы значениями из атрибутов кнопки
+            document.getElementById('amount').value = amount;
+            document.getElementById('date_time').value = dateTime;
+            document.getElementById('type_person').value = transactionType;
+            document.getElementById('status').value = status;
+            document.getElementById('sender_bank').value = senderBank;
+            document.getElementById('receiver_bank').value = receiverBank;
+            document.getElementById('receiver_inn').value = receiverInn;
+            document.getElementById('receiver_phone').value = receiverPhone;
+            document.getElementById('category').value = category;
+            document.getElementById('comment').value = comment;
+
+            // Устанавливаем action формы с учетом ID транзакции
+            const form = document.querySelector('#correctTransaction form');
+            form.action = `{% url 
+            {% comment %} 'update_transaction' transactionId  {% endcomment %}
+            %}`;
+        });
+    });
+});
+</script>
+{% endblock %}
