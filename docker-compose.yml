@@ -1,14 +1,56 @@
 services:
   postgres:
     image: postgres:latest
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  django-web:
+   image: ${IMAGE_REF}
+   container_name: django-docker
+   depends_on:
+     - postgres
+   volumes:
+     - static_volume:/finance/static
+   environment:
+    #  DJANGO_SECRET_KEY: 
+     DEBUG: True
+     #DJANGO_LOGLEVEL: info
+     DJANGO_ALLOWED_HOSTS: '5.189.223.132'
+    #  DATABASE_ENGINE: ${DATABASE_ENGINE}
+    #  DATABASE_NAME: ${DATABASE_NAME}
+    #  DATABASE_USERNAME: ${DATABASE_USERNAME}
+     #  DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+     DB_HOST: postgres
+    #  DATABASE_PORT: ${DATABASE_PORT}
+   healthcheck:
+      test: ["CMD-SHELL", "python3 manage.py check --database default --deploy --fail-level CRITICAL"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx_server
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - static_volume:/finance/static:ro
+    depends_on:
+      - django-web
 
 volumes:
   postgres_data:
+  static_volume:
