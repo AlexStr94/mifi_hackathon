@@ -88,6 +88,16 @@
             </div>
           </div>
 
+            <div class="col-12">
+              <label for="{{ form.inn.id_for_label }}" class="form-label">ИНН</label>
+              <input type="text" class="form-control" id="{{ form.inn.id_for_label }}"
+           name="{{ form.inn.name }}" placeholder="1234567890" required
+           pattern="[0-9]{10,12}" value="{{ form.inn.value|default_if_none:'' }}">
+              <div class="invalid-feedback">
+        ИНН должен содержать 10 или 12 цифр
+              </div>
+           </div>
+
           <div class="col-12">
             <label for="{{ form.password1.id_for_label }}" class="form-label">Пароль</label>
             <input type="password" class="form-control" id="{{ form.password1.id_for_label }}" name="{{ form.password1.name }}" required minlength="8">
@@ -169,6 +179,19 @@
             } else {
                 emailFeedback.textContent = "";
                 emailFeedback.style.display = "none";
+            }
+            // Проверка поля ИНН
+            var innField = form.querySelector('input[name="inn"]');
+            var innFeedback = form.querySelector('input[name="inn"] + .invalid-feedback');
+            var innPattern = /^[0-9]{10,12}$/;
+            if (!innPattern.test(innField.value)) {
+                innFeedback.textContent = "ИНН должен содержать 10 или 12 цифр";
+                innFeedback.style.display = "block";
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                innFeedback.textContent = "";
+                innFeedback.style.display = "none";
             }
 
             form.classList.add('was-validated');
