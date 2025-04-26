@@ -48,10 +48,9 @@ jobs:
           IMAGE_REF: ${{ steps.meta.outputs.tags }}
           # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
                     # 
-                              # docker --context remote stack deploy --compose-file docker-compose.yml my-flask
         run: |
-          DOCKER_CONTEXT=remote docker rm -f django-docker
-          DOCKER_CONTEXT=remote docker image rm -f ghcr.io/vanhellthing93/djtest:main
+          DOCKER_CONTEXT=remote docker rm -f django-docker || true
+          DOCKER_CONTEXT=remote docker image rm -f ${{ env.IMAGE_REF }} || true
           DOCKER_CONTEXT=remote docker compose pull
           DOCKER_CONTEXT=remote docker compose -f docker-compose.yml up -d
 
