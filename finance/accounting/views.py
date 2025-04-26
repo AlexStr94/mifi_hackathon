@@ -1,9 +1,11 @@
 from django.contrib import messages
+from django_filters.views import FilterView
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum
-from django.views.generic import ListView, TemplateView
+from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
+from api.v1.accointing.filters import TransactionFilterSet
 
 from .forms import UserRegisterForm
 from .models import Transaction
@@ -66,8 +68,9 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class TransactionListView(LoginRequiredMixin, ListView):
+class TransactionFilterView(LoginRequiredMixin, FilterView):
     model = Transaction
+    context_object_name = 'transactions'
     template_name = "accounting/transactions.html"
     paginate_by = 10
 

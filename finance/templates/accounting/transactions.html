@@ -14,9 +14,93 @@
 {% endblock %}
 
 {% block content %}
-<div>
-  <button type="button" class="btn mt-4 btn-success" data-bs-toggle="modal" data-bs-target="#createTransaction"><i class="bi bi-plus-square"></i> Добавить транзакцию</button>
+
+
+<div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+    <a class="btn btn-primary" data-bs-toggle="collapse" href="#transactionFilter" role="button" aria-expanded="false" aria-controls="transactionFilter">
+        Фильтр ▼
+      </a>
+    <div>
+        <button type="button" class="btn mt-4 btn-success" data-bs-toggle="modal" data-bs-target="#createTransaction"><i class="bi bi-plus-square"></i> Добавить транзакцию</button>
+    </div>
 </div>
+
+
+<div class="collapse" id="transactionFilter">
+  <div class="card card-body">
+
+  <div class="filter-content" id="filterContent">
+    <form method="get" action="">
+      <div class="row">
+        <div class="col-md-3">
+          <label for="sender_bank" class="form-label">Банк отправителя:</label>
+          <input type="text" class="form-control" id="sender_bank" name="sender_bank" value="{{ request.GET.sender_bank }}">
+        </div>
+        <div class="col-md-3">
+          <label for="receiver_bank" class="form-label">Банк получателя:</label>
+          <input type="text" class="form-control" id="receiver_bank" name="receiver_bank" value="{{ request.GET.receiver_bank }}">
+        </div>
+        <div class="col-md-3">
+          <label for="status" class="form-label">Статус:</label>
+          <select class="form-select" id="status" name="status">
+            <option value="">Выберите статус</option>
+            {% for status in transaction_statuses %}
+              <option value="{{ status.0 }}" {% if request.GET.status == status.0 %}selected{% endif %}>{{ status.1 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="receiver_inn" class="form-label">ИНН:</label>
+          <input type="text" class="form-control" id="receiver_inn" name="receiver_inn" value="{{ request.GET.receiver_inn }}">
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col-md-3">
+          <label for="category" class="form-label">Категория:</label>
+          <select class="form-select" id="category" name="category">
+            <option value="">Выберите категорию</option>
+            {% for category in categories %}
+              <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="date_time_0" class="form-label">Дата (с):</label>
+          <input type="date" class="form-control" id="date_time_0" name="date_time_after" value="{{ request.GET.date_time_after }}">
+        </div>
+        <div class="col-md-3">
+          <label for="date_time_1" class="form-label">Дата (по):</label>
+          <input type="date" class="form-control" id="date_time_1" name="date_time_before" value="{{ request.GET.date_time_before }}">
+        </div>
+        <div class="col-md-3">
+          <label for="amount_0" class="form-label">Сумма (от):</label>
+          <input type="number" class="form-control" id="amount_0" name="amount_after" value="{{ request.GET.amount_after }}">
+        </div>
+        <div class="col-md-3">
+          <label for="amount_1" class="form-label">Сумма (до):</label>
+          <input type="number" class="form-control" id="amount_1" name="amount_before" value="{{ request.GET.amount_before }}">
+        </div>
+        <div class="col-md-3">
+          <label for="transaction_type" class="form-label">Тип операции:</label>
+          <select class="form-select" id="transaction_type" name="transaction_type">
+            <option value="">Выберите тип операции</option>
+            {% for type in transaction_types %}
+              <option value="{{ type.0 }}" {% if request.GET.transaction_type == type.0 %}selected{% endif %}>{{ type.1 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end mt-3">
+          <button type="submit" class="btn btn-primary me-2">Применить</button>
+          <a href="
+          {% comment %} {% url 'your_view_name' %} {% endcomment %}
+           " class="btn btn-secondary">Сбросить</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
 <table class="table mt-3 table-bordered border-secondary table-striped table-hover">
     <thead class="table_custom">
         <tr>
@@ -37,7 +121,7 @@
     <tbody>
         {% for transaction in page_obj %}
         <tr>
-            <td style="white-space: nowrap;">{{ transaction.date_time|date:"d.m.Y H:i" }}</td>
+            <td>{{ transaction.date_time|date:"d.m.Y H:i" }}</td>
             <td class="{% if transaction.transaction_type == 'entry' %}text-success{% elif transaction.transaction_type == 'write-off' %}text-danger{% endif %}" style="white-space: nowrap;">
                 {% if transaction.transaction_type == 'entry' %}+{% elif transaction.transaction_type == 'write-off' %}-{% endif %}
                 {{ transaction.amount|floatformat:2 }}
