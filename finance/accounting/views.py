@@ -5,10 +5,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
-from api.v1.accointing.filters import TransactionFilterSet
+from api.v1.accounting.filters import TransactionFilterSet
 
 from .forms import UserRegisterForm
-from .models import Transaction
+from .models import Bank, Category, Transaction
 
 
 def logout_view(request):
@@ -68,8 +68,9 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class TransactionFilterView(LoginRequiredMixin, FilterView):
+class TransactionView(LoginRequiredMixin, FilterView):
     model = Transaction
+    filterset_class = TransactionFilterSet
     context_object_name = 'transactions'
     template_name = "accounting/transactions.html"
     paginate_by = 10
@@ -78,3 +79,11 @@ class TransactionFilterView(LoginRequiredMixin, FilterView):
         return (
             super().get_queryset().filter(user=self.request.user).order_by("-date_time")
         )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["statuses"] = Transaction.TRANSACTION_STATUSES
+        context["banks"] = Bank.objects.all()
+        context["categories"] = Category.objects.all()
+        context["types"] = Transaction.TRANSACTION_TYPES
+        return context

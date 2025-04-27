@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework.routers import SimpleRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .v1.accointing.views import BankViewSet, CategoryViewSet, TransactionViewSet
+from .v1.accounting.views import BankViewSet, CategoryViewSet, TransactionViewSet
 
 router_v1 = SimpleRouter()
 router_v1.register('v1/transactions', TransactionViewSet)
