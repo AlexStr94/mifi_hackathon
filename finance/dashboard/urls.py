@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+app_name = 'dashboard'  # Добавляем namespace
+
 urlpatterns = [
     path('', views.dashboard_view, name='dashboard'),
     path('transaction-dynamics/', views.transaction_dynamics, name='transaction-dynamics'),
