@@ -40,7 +40,7 @@ services:
       retries: 3
   nginx:
     build:
-      context: ./nginx
+      context: ./deploy/nginx
       dockerfile: Dockerfile
     container_name: nginx_server
     restart: always

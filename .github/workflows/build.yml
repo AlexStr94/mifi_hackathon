@@ -3,7 +3,7 @@ name: Build and Push Docker Image
 on:
     push:
         branches:
-            - '*'
+            - 'main'
 env:
     REGISTRY: ghcr.io
     IMAGE_NAME: ${{ github.repository }}
@@ -35,7 +35,7 @@ jobs:
               uses: docker/build-push-action@v5.3.0
               with:
                 context: .  # Указываем контекст сборки как поддиректорию finance
-                file: ./finance/Dockerfile  # Указываем путь к Dockerfile
+                file: ./deploy/Dockerfile  # Указываем путь к Dockerfile
                 push: true
                 tags: ${{ steps.meta.outputs.tags }}
                 labels: ${{ steps.meta.outputs.labels }}
