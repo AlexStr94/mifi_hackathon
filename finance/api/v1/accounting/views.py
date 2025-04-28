@@ -3,7 +3,7 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from accounting.models import Bank, Category, Transaction
 from .filters import TransactionFilterSet
-from .serializers import BankSerializer, CategorySerializer, CreateTransactionSerializer, RetrieveTransactionSerializer
+from .serializers import BankSerializer, CategorySerializer, CreateTransactionSerializer, RetrieveTransactionSerializer, UpdateTransactionSerializer
 
 
 class TransactionViewSet(ModelViewSet):
@@ -19,8 +19,10 @@ class TransactionViewSet(ModelViewSet):
         return Transaction.objects.filter(user=self.request.user)
 
     def get_serializer_class(self):
-        if self.action in ('create', 'update'):
+        if self.action == 'create':
             return CreateTransactionSerializer
+        if self.action == 'update':
+            return UpdateTransactionSerializer
         return RetrieveTransactionSerializer
 
     def perform_create(self, serializer):

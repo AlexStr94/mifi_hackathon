@@ -16,6 +16,14 @@
 
 {% block content %}
 
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
 
 <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
     <a class="btn btn-primary" data-bs-toggle="collapse" href="#transactionFilter" role="button" aria-expanded="false" aria-controls="transactionFilter">
@@ -157,11 +165,11 @@
                             data-date-time="{{ transaction.date_time|date:"Y-m-d\TH:i" }}"
                             data-status="{{ transaction.status }}"
                             data-type-person="{{ transaction.type_person }}"
-                            data-sender-bank="{{ transaction.sender_bank.name }}"
-                            data-receiver-bank="{{ transaction.receiver_bank.name }}"
+                            data-sender-bank="{{ transaction.sender_bank.id }}"
+                            data-receiver-bank="{{ transaction.receiver_bank.id }}"
                             data-receiver-inn="{{ transaction.receiver_inn }}"
                             data-receiver-phone="{{ transaction.receiver_phone }}"
-                            data-category="{{ transaction.category.name }}"
+                            data-category="{{ transaction.category.id }}"
                             data-comment="{{ transaction.comment }}">
                         <i class="bi bi-pencil-square"></i>
                     </button>
@@ -242,14 +250,9 @@
                             <label for="status" class="form-label fw-bold">Статус операции:</label>
                             <div class="input-group mb-3">
                                 <select class="form-select" id="status" name="status">
-                                    <option selected>Выберете статус операции</option>
-                                    <option value="new">Новая</option>
-                                    <option value="confirmed">Подтвержденная</option>
-                                    <option value="in_process">В обработке</option>
-                                    <option value="canceled">Отменена</option>
-                                    <option value="completed">Платеж выполнен</option>
-                                    <option value="deleted">Платеж удален</option>
-                                    <option value="refund">Возврат</option>
+                                    {% for status in statuses %}
+                                    <option value="{{ status.0 }}" {% if request.GET.status == status.0 %}selected{% endif %}>{{ status.1 }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                         </div>
@@ -272,11 +275,19 @@
                     </div>
                     <label for="sender_bank" class="form-label mt-2 fw-bold">Банк отправителя:</label>
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="sender_bank" name="sender_bank" placeholder="Название банка">
+                        <select class="form-select" id="sender_bank" name="sender_bank">
+                            {% for bank in banks %}
+                            <option value="{{ bank.id }}">{{ bank.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <label for="receiver_bank" class="form-label fw-bold">Банк получателя:</label>
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="receiver_bank" name="receiver_bank" placeholder="Название банка">
+                        <select class="form-select" id="receiver_bank" name="receiver_bank">
+                            {% for bank in banks %}
+                              <option value="{{ bank.id }}" {% if request.GET.receiver_bank == bank.id|stringformat:"s"  %}selected{% endif %}>{{ bank.name }}</option>
+                            {% endfor %}
+                          </select>
                     </div>
                     <label for="receiver_inn" class="form-label fw-bold">ИНН:</label>
                     <div class="input-group mb-3">
@@ -284,7 +295,11 @@
                     </div>
                     <label for="category" class="form-label fw-bold">Категории:</label>
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="category" name="category" placeholder="Название категории">
+                        <select class="form-select" id="category" name="category">
+                            {% for category in categories %}
+                              <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <label for="receiver_phone" class="form-label fw-bold">Номер телефона:</label>
                     <div class="input-group mb-3">
@@ -306,7 +321,7 @@
 <div class="modal fade" id="createTransaction" tabindex="-1" aria-labelledby="createTransactionLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
       <div class="modal-content">
-          <form method="POST" action="">
+          <form method="POST" action="{% url 'accounting:create-transaction'%}">
               {% csrf_token %}
               <div class="modal-header">
                   <h5 class="modal-title fw-bold" id="exampleModalLabel">Создание транзакции</h5>
@@ -337,14 +352,9 @@
                           <label for="status" class="form-label fw-bold">Статус операции:</label>
                           <div class="input-group mb-3">
                               <select class="form-select" id="status" name="status">
-                                  <option selected>Выберете статус операции</option>
-                                  <option value="new">Новая</option>
-                                  <option value="confirmed">Подтвержденная</option>
-                                  <option value="in_process">В обработке</option>
-                                  <option value="canceled">Отменена</option>
-                                  <option value="completed">Платеж выполнен</option>
-                                  <option value="deleted">Платеж удален</option>
-                                  <option value="refund">Возврат</option>
+                                {% for status in statuses %}
+                                <option value="{{ status.0 }}" {% if request.GET.status == status.0 %}selected{% endif %}>{{ status.1 }}</option>
+                                {% endfor %}
                               </select>
                           </div>
                       </div>
@@ -367,19 +377,34 @@
                   </div>
                   <label for="sender_bank" class="form-label mt-2 fw-bold">Банк отправителя:</label>
                   <div class="input-group mb-3">
-                      <input type="text" class="form-control" id="sender_bank" name="sender_bank" placeholder="Название банка">
+                    <select class="form-select" id="sender_bank" name="sender_bank">
+                        <option selected>Выберете банк отправителя</option>
+                        {% for bank in banks %}
+                        <option value="{{ bank.id }}">{{ bank.name }}</option>
+                        {% endfor %}
+                    </select>
                   </div>
                   <label for="receiver_bank" class="form-label fw-bold">Банк получателя:</label>
                   <div class="input-group mb-3">
-                      <input type="text" class="form-control" id="receiver_bank" name="receiver_bank" placeholder="Название банка">
+                    <select class="form-select" id="receiver_bank" name="receiver_bank">
+                        <option value="">Выберите банк получателя</option>
+                        {% for bank in banks %}
+                          <option value="{{ bank.id }}" {% if request.GET.receiver_bank == bank.id|stringformat:"s"  %}selected{% endif %}>{{ bank.name }}</option>
+                        {% endfor %}
+                      </select>
                   </div>
                   <label for="receiver_inn" class="form-label fw-bold">ИНН:</label>
                   <div class="input-group mb-3">
-                      <input type="text" class="form-control" id="receiver_inn" name="receiver_inn" pattern="\d{11}" placeholder="012345678910" required>
+                      <input type="text" class="form-control" id="receiver_inn" name="receiver_inn" pattern="\d{10,12}" placeholder="012345678910" required>
                   </div>
                   <label for="category" class="form-label fw-bold">Категории:</label>
                   <div class="input-group mb-3">
-                      <input type="text" class="form-control" id="category" name="category" placeholder="Название категории">
+                    <select class="form-select" id="category" name="category">
+                        <option value="">Выберите категорию</option>
+                        {% for category in categories %}
+                          <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
                   </div>
                   <label for="receiver_phone" class="form-label fw-bold">Номер телефона:</label>
                   <div class="input-group mb-3">
@@ -468,9 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Устанавливаем action формы с учетом ID транзакции
             const form = document.querySelector('#correctTransaction form');
-            form.action = `{% url 
-            {% comment %} 'update_transaction' transactionId  {% endcomment %}
-            %}`;
+            form.action = `/transactions/update/${transactionId}`;
         });
     });
 });
