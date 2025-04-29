@@ -3,6 +3,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import User
 
+from users.models import User
+
+
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(max_length=254, help_text='Required. Enter a valid email address.')
     inn = forms.CharField(
