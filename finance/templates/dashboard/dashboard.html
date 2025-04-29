@@ -1,0 +1,554 @@
+{% extends 'base.html' %}
+
+{% block title %}Дашборд{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css" rel="stylesheet">
+<style>
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 30px;
+    }
+    .card {
+        margin-bottom: 20px;
+    }
+    .report-section {
+        margin-bottom: 40px;
+    }
+    .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+    }
+    .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Финансовый дашборд</h1>
+
+    <div class="report-section">
+        <h2>Динамика транзакций</h2>
+        <div class="btn-group mb-3">
+            <button class="btn btn-outline-primary period-btn active" data-period="week">Неделя</button>
+            <button class="btn btn-outline-primary period-btn" data-period="month">Месяц</button>
+            <button class="btn btn-outline-primary period-btn" data-period="quarter">Квартал</button>
+            <button class="btn btn-outline-primary period-btn" data-period="year">Год</button>
+        </div>
+        <div class="chart-container">
+            <canvas id="transactionDynamicsChart"></canvas>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="report-section">
+                <h2>Типы транзакций</h2>
+                <div class="chart-container">
+                    <canvas id="transactionTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="report-section">
+                <h2>Поступления vs Расходы</h2>
+                <div class="chart-container">
+                    <canvas id="incomeExpenseChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="report-section">
+        <h2>Статусы транзакций</h2>
+        <div class="chart-container">
+            <canvas id="transactionStatusChart"></canvas>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="report-section">
+                <h2>Банки отправители</h2>
+                <div class="chart-container">
+                    <canvas id="senderBankChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="report-section">
+                <h2>Банки получатели</h2>
+                <div class="chart-container">
+                    <canvas id="receiverBankChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="report-section">
+        <h2>Категории</h2>
+        <div class="chart-container">
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+
+    <button class="btn btn-primary mb-4" id="exportPdf">Экспорт в PDF</button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+// Глобальные переменные для хранения экземпляров графиков
+const charts = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализация всех графиков
+    initTransactionDynamicsChart();
+    initTransactionTypeChart();
+    initIncomeExpenseChart();
+    initTransactionStatusChart();
+    initBankCharts();
+    initCategoryChart();
+
+    // Обработчики для кнопок периода
+    document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            updateTransactionDynamicsChart(this.dataset.period);
+        });
+    });
+
+    // Обработчик для экспорта в PDF
+    document.getElementById('exportPdf').addEventListener('click', exportToPdf);
+});
+
+// Инициализация графика динамики транзакций
+function initTransactionDynamicsChart() {
+    const ctx = document.getElementById('transactionDynamicsChart').getContext('2d');
+    charts.transactionDynamics = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Количество транзакций',
+                data: [],
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                yAxisID: 'y'
+            }, {
+                label: 'Сумма транзакций',
+                data: [],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                yAxisID: 'y1',
+                type: 'bar'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Количество'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Сумма'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+    updateTransactionDynamicsChart('week');
+}
+
+// Обновление графика динамики транзакций
+function updateTransactionDynamicsChart(period) {
+    showLoading('transactionDynamicsChart');
+    fetch(`/dashboard/transaction-dynamics/?period=${period}`)
+        .then(response => response.json())
+        .then(data => {
+            const labels = data.map(item => item.date || item.week || item.month);
+            const counts = data.map(item => item.count);
+            const amounts = data.map(item => item.total_amount);
+
+            charts.transactionDynamics.data.labels = labels;
+            charts.transactionDynamics.data.datasets[0].data = counts;
+            charts.transactionDynamics.data.datasets[1].data = amounts;
+            charts.transactionDynamics.update();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+// Инициализация графика типов транзакций
+function initTransactionTypeChart() {
+    const ctx = document.getElementById('transactionTypeChart').getContext('2d');
+    charts.transactionType = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Поступления', 'Списания'],
+            datasets: [{
+                data: [0, 0],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(255, 99, 132, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    fetch('/dashboard/transaction-type-stats/')
+        .then(response => response.json())
+        .then(data => {
+            const entry = data.find(item => item.transaction_type === 'entry') || {count: 0, total_amount: 0};
+            const writeOff = data.find(item => item.transaction_type === 'write-off') || {count: 0, total_amount: 0};
+
+            charts.transactionType.data.datasets[0].data = [entry.count, writeOff.count];
+            charts.transactionType.update();
+        });
+}
+
+// Инициализация графика доходов/расходов
+function initIncomeExpenseChart() {
+    const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
+    charts.incomeExpense = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Поступления', 'Расходы'],
+            datasets: [{
+                label: 'Сумма',
+                data: [0, 0],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(255, 99, 132, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    fetch('/dashboard/income-vs-expense/')
+        .then(response => response.json())
+        .then(data => {
+            charts.incomeExpense.data.datasets[0].data = [
+                data.total_income || 0,
+                Math.abs(data.total_expense) || 0
+            ];
+            charts.incomeExpense.update();
+        });
+}
+
+// Инициализация графика статусов транзакций
+function initTransactionStatusChart() {
+    const ctx = document.getElementById('transactionStatusChart').getContext('2d');
+    charts.transactionStatus = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    fetch('/dashboard/transaction-status-stats/')
+        .then(response => response.json())
+        .then(data => {
+            const statusMap = {
+                'new': 'Новая',
+                'confirmed': 'Подтвержденная',
+                'in_process': 'В обработке',
+                'canceled': 'Отменена',
+                'completed': 'Выполнена',
+                'deleted': 'Удалена',
+                'refund': 'Возврат'
+            };
+
+            const labels = data.map(item => statusMap[item.status] || item.status);
+            const counts = data.map(item => item.count);
+
+            charts.transactionStatus.data.labels = labels;
+            charts.transactionStatus.data.datasets[0].data = counts;
+            charts.transactionStatus.update();
+        });
+}
+
+// Инициализация графиков банков
+function initBankCharts() {
+    // График банков-отправителей
+    const senderCtx = document.getElementById('senderBankChart').getContext('2d');
+    charts.senderBank = new Chart(senderCtx, {
+        type: 'polarArea',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)',
+                    'rgba(54, 162, 235, 0.5)',
+                    'rgba(255, 206, 86, 0.5)',
+                    'rgba(75, 192, 192, 0.5)',
+                    'rgba(153, 102, 255, 0.5)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // График банков-получателей
+    const receiverCtx = document.getElementById('receiverBankChart').getContext('2d');
+    charts.receiverBank = new Chart(receiverCtx, {
+        type: 'polarArea',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.5)',
+                    'rgba(153, 102, 255, 0.5)',
+                    'rgba(255, 159, 64, 0.5)',
+                    'rgba(54, 162, 235, 0.5)',
+                    'rgba(255, 99, 132, 0.5)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Загрузка данных для обоих графиков
+    fetch('/dashboard/bank-stats/')
+        .then(response => response.json())
+        .then(data => {
+            // Банки-отправители
+            const senderLabels = data.sender_banks.map(item => item.sender_bank__name);
+            const senderData = data.sender_banks.map(item => item.count);
+
+            charts.senderBank.data.labels = senderLabels;
+            charts.senderBank.data.datasets[0].data = senderData;
+            charts.senderBank.update();
+
+            // Банки-получатели
+            const receiverLabels = data.receiver_banks.map(item => item.receiver_bank__name);
+            const receiverData = data.receiver_banks.map(item => item.count);
+
+            charts.receiverBank.data.labels = receiverLabels;
+            charts.receiverBank.data.datasets[0].data = receiverData;
+            charts.receiverBank.update();
+        });
+}
+
+// Инициализация графика категорий
+function initCategoryChart() {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    charts.category = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Поступления',
+                    data: [],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Расходы',
+                    data: [],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: {
+                        display: true
+                    },
+                    suggestedMin: 0
+                }
+            }
+        }
+    });
+
+    fetch('/dashboard/category-stats/')
+        .then(response => response.json())
+        .then(data => {
+            const categories = [...new Set(data.map(item => item.category__name))];
+            const incomeData = categories.map(cat => {
+                const item = data.find(i => i.category__name === cat && i.transaction_type === 'entry');
+                return item ? item.total_amount : 0;
+            });
+            const expenseData = categories.map(cat => {
+                const item = data.find(i => i.category__name === cat && i.transaction_type === 'write-off');
+                return item ? Math.abs(item.total_amount) : 0;
+            });
+
+            charts.category.data.labels = categories;
+            charts.category.data.datasets[0].data = incomeData;
+            charts.category.data.datasets[1].data = expenseData;
+            charts.category.update();
+        });
+}
+
+// Функция для отображения индикатора загрузки
+function showLoading(chartId) {
+    const canvas = document.getElementById(chartId);
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading';
+    loadingDiv.id = `${chartId}-loading`;
+    loadingDiv.innerHTML = '<div class="loading-spinner"></div>';
+    canvas.parentNode.insertBefore(loadingDiv, canvas);
+    canvas.style.display = 'none';
+}
+
+// Функция для скрытия индикатора загрузки
+function hideLoading(chartId) {
+    const loadingDiv = document.getElementById(`${chartId}-loading`);
+    if (loadingDiv) {
+        loadingDiv.remove();
+    }
+    const canvas = document.getElementById(chartId);
+    if (canvas) {
+        canvas.style.display = 'block';
+    }
+}
+
+// Экспорт дашборда в PDF
+function exportToPdf() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'pt', 'a4');
+    const element = document.querySelector('.container');
+    const buttons = document.querySelectorAll('.period-btn, #exportPdf');
+
+    // Скрываем кнопки перед созданием PDF
+    buttons.forEach(btn => btn.style.display = 'none');
+
+    html2canvas(element, {
+        scale: 2,
+        logging: true,
+        useCORS: true
+    }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = doc.internal.pageSize.getWidth() - 40;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        doc.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
+        doc.save('financial-dashboard.pdf');
+
+        // Восстанавливаем видимость кнопок
+        buttons.forEach(btn => btn.style.display = '');
+    });
+}
+</script>
+{% endblock %}

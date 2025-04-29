@@ -24,6 +24,7 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
     path('', include('accounting.urls')),
     path('reports/', include('reports.urls')),
+    path('dashboard/', include('dashboard.urls', namespace='dashboard')),
 ]
 
 if settings.DEBUG:

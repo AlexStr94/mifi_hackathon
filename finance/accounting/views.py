@@ -1,6 +1,6 @@
 from django.contrib import messages
+from django.contrib.auth import logout, login
 from django_filters.views import FilterView
-from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum
 from django.views.generic import View, TemplateView
@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from api.v1.accounting.filters import TransactionFilterSet
 from api.v1.accounting.serializers import CreateTransactionSerializer, UpdateTransactionSerializer
 
-from .forms import UserRegisterForm
+from users.forms import CustomUserCreationForm  # Импортируем кастомную форму
 from .models import Bank, Category, Transaction
 
 
@@ -19,18 +19,16 @@ def logout_view(request):
 
 def register(request):
     if request.method == "POST":
-        form = UserRegisterForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            login(request, user)  # Автоматически входим после регистрации
             messages.success(request, "Вы успешно зарегистрировались!")
-            username = form.cleaned_data.get("username")
-            messages.success(request, f"Создан аккаунт {username}!")
             return redirect("accounting:profile")
-        else:
-            return render(request, "registration/register.html", {"form": form})
     else:
-        form = UserRegisterForm()
-        return render(request, "registration/register.html", {"form": form})
+        form = CustomUserCreationForm()
+
+    return render(request, "registration/register.html", {"form": form})
 
 
 class IndexView(TemplateView):
@@ -42,15 +40,11 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Получаем текущего пользователя
         user = self.request.user
 
-        # Получаем последние 10 транзакций текущего пользователя, отсортированные по дате
         transactions = Transaction.objects.filter(user=user)
         last_transactions = transactions.order_by("-date_time")[:10]
 
-        # Вычисляем общие доходы и расходы
         total_income = transactions.filter(transaction_type="entry").aggregate(
             total=Sum("amount")
         )["total"] or 0
@@ -59,13 +53,14 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         )["total"] or 0
         balance = total_income - total_expenses
 
-        # Добавляем данные в контекст
-        context["transactions"] = last_transactions
-        context["total_income"] = round(total_income, 2)
-        context["total_expenses"] = round(total_expenses, 2)
-        context["balance"] = round(balance, 2)
+        context.update({
+            "transactions": last_transactions,
+            "total_income": round(total_income, 2),
+            "total_expenses": round(abs(total_expenses), 2),
+            "balance": round(balance, 2),
+            "user": user  # Добавляем пользователя в контекст
+        })
 
-        # Возвращаем контекст
         return context
 
 
@@ -75,6 +70,7 @@ class TransactionListView(LoginRequiredMixin, FilterView):
     context_object_name = 'transactions'
     template_name = "accounting/transactions.html"
     paginate_by = 10
+    context_object_name = "transactions"
 
     def get_queryset(self):
         return (
