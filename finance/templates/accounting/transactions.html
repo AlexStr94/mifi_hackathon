@@ -16,6 +16,22 @@
 
 {% block content %}
 
+    <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="messageModalLabel">Информация</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="messageModalBody">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
 
 <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
     <a class="btn btn-primary" data-bs-toggle="collapse" href="#transactionFilter" role="button" aria-expanded="false" aria-controls="transactionFilter">
@@ -157,15 +173,22 @@
                             data-date-time="{{ transaction.date_time|date:"Y-m-d\TH:i" }}"
                             data-status="{{ transaction.status }}"
                             data-type-person="{{ transaction.type_person }}"
-                            data-sender-bank="{{ transaction.sender_bank.name }}"
-                            data-receiver-bank="{{ transaction.receiver_bank.name }}"
+                            data-sender-bank="{{ transaction.sender_bank.id }}"
+                            data-receiver-bank="{{ transaction.receiver_bank.id }}"
                             data-receiver-inn="{{ transaction.receiver_inn }}"
                             data-receiver-phone="{{ transaction.receiver_phone }}"
-                            data-category="{{ transaction.category.name }}"
+                            data-category="{{ transaction.category.id }}"
                             data-comment="{{ transaction.comment }}">
                         <i class="bi bi-pencil-square"></i>
                     </button>
-                    <button type="button" class="btn ms-2 btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmation"><i class="bi bi-trash"></i></button>
+                    <button type="button" class="btn ms-2 btn-danger delete-transaction-btn"
+                      data-bs-toggle="modal"
+                      data-bs-target="#deleteConfirmation"
+                      data-transaction-date="{{ transaction.date_time|date:"d.m.Y H:i" }}"
+                      data-transaction-amount="{{ transaction.amount|floatformat:2 }}"
+                      data-transaction-id="{{ transaction.id }}">
+                      <i class="bi bi-trash"></i>
+                    </button>
                   </div>
                 </div>
             </td>
@@ -211,7 +234,11 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-        <button type="button" class="btn btn-danger">Удалить</button>
+        <form id="deleteTransactionForm" method="post" action="">
+          {% csrf_token %}
+          <input type="hidden" name="_method" value="DELETE">
+          <button type="submit" class="btn btn-danger">Удалить</button>
+        </form>
       </div>
     </div>
   </div>
@@ -230,7 +257,7 @@
                         <div class="d-flex flex-column p2 w-50">
                             <label for="type_person" class="form-label fw-bold">Тип лица:</label>
                             <div class="input-group mb-3">
-                                <select class="form-select" id="type_person" name="type_person">
+                                <select class="form-select" id="type_person_c" name="type_person">
                                     <option selected>Выберете тип лица</option>
                                     <option value="person">Физическое лицо</option>
                                     <option value="company">Юридическое лицо</option>
@@ -241,15 +268,10 @@
                         <div class="d-flex flex-column p2 w-50">
                             <label for="status" class="form-label fw-bold">Статус операции:</label>
                             <div class="input-group mb-3">
-                                <select class="form-select" id="status" name="status">
-                                    <option selected>Выберете статус операции</option>
-                                    <option value="new">Новая</option>
-                                    <option value="confirmed">Подтвержденная</option>
-                                    <option value="in_process">В обработке</option>
-                                    <option value="canceled">Отменена</option>
-                                    <option value="completed">Платеж выполнен</option>
-                                    <option value="deleted">Платеж удален</option>
-                                    <option value="refund">Возврат</option>
+                                <select class="form-select" id="status_c" name="status">
+                                    {% for status in statuses %}
+                                    <option value="{{ status.0 }}" {% if request.GET.status == status.0 %}selected{% endif %}>{{ status.1 }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                         </div>
@@ -259,40 +281,52 @@
                             <label for="amount" class="form-label fw-bold">Сумма операции:</label>
                             <div class="input-group">
                                 <span class="input-group-text">₽</span>
-                                <input type="text" class="form-control" id="amount" name="amount" pattern="^\d+(\.\d{1,2})?$" required>
+                                <input type="text" class="form-control" id="amount_c" name="amount" pattern="^\d+(\.\d{1,2})?$" required>
                             </div>
                         </div>
                         <span class="mx-4"></span>
                         <div class="d-flex flex-column ms-4">
                             <label for="date_time" class="form-label fw-bold">Время операции:</label>
                             <div class="input-group mb-3">
-                                <input type="datetime-local" class="form-control" id="date_time" name="date_time" required>
+                                <input type="datetime-local" class="form-control" id="date_time_c" name="date_time" required>
                             </div>
                         </div>
                     </div>
                     <label for="sender_bank" class="form-label mt-2 fw-bold">Банк отправителя:</label>
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="sender_bank" name="sender_bank" placeholder="Название банка">
+                        <select class="form-select" id="sender_bank_c" name="sender_bank">
+                            {% for bank in banks %}
+                            <option value="{{ bank.id }}">{{ bank.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <label for="receiver_bank" class="form-label fw-bold">Банк получателя:</label>
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="receiver_bank" name="receiver_bank" placeholder="Название банка">
+                        <select class="form-select" id="receiver_bank_c" name="receiver_bank">
+                            {% for bank in banks %}
+                              <option value="{{ bank.id }}" {% if request.GET.receiver_bank == bank.id|stringformat:"s"  %}selected{% endif %}>{{ bank.name }}</option>
+                            {% endfor %}
+                          </select>
                     </div>
                     <label for="receiver_inn" class="form-label fw-bold">ИНН:</label>
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="receiver_inn" name="receiver_inn" pattern="\d{11}" placeholder="012345678910" required>
+                        <input type="text" class="form-control" id="receiver_inn_c" name="receiver_inn" pattern="\d{10,12}" placeholder="012345678910" required>
                     </div>
                     <label for="category" class="form-label fw-bold">Категории:</label>
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="category" name="category" placeholder="Название категории">
+                        <select class="form-select" id="category_c" name="category">
+                            {% for category in categories %}
+                              <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <label for="receiver_phone" class="form-label fw-bold">Номер телефона:</label>
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="receiver_phone" name="receiver_phone" placeholder="+7 (123) 456-78-90" required>
+                        <input type="text" class="form-control" id="receiver_phone_c" name="receiver_phone" placeholder="+7 (123) 456-78-90" required>
                     </div>
                     <label for="comment" class="form-label fw-bold">Комментарий:</label>
                     <div class="input-group">
-                        <textarea class="form-control" id="comment" name="comment" aria-label="With textarea"></textarea>
+                        <textarea class="form-control" id="comment_c" name="comment" aria-label="With textarea"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -306,7 +340,7 @@
 <div class="modal fade" id="createTransaction" tabindex="-1" aria-labelledby="createTransactionLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
       <div class="modal-content">
-          <form method="POST" action="">
+          <form method="POST" action="{% url 'accounting:create-transaction'%}">
               {% csrf_token %}
               <div class="modal-header">
                   <h5 class="modal-title fw-bold" id="exampleModalLabel">Создание транзакции</h5>
@@ -337,14 +371,9 @@
                           <label for="status" class="form-label fw-bold">Статус операции:</label>
                           <div class="input-group mb-3">
                               <select class="form-select" id="status" name="status">
-                                  <option selected>Выберете статус операции</option>
-                                  <option value="new">Новая</option>
-                                  <option value="confirmed">Подтвержденная</option>
-                                  <option value="in_process">В обработке</option>
-                                  <option value="canceled">Отменена</option>
-                                  <option value="completed">Платеж выполнен</option>
-                                  <option value="deleted">Платеж удален</option>
-                                  <option value="refund">Возврат</option>
+                                {% for status in statuses %}
+                                <option value="{{ status.0 }}" {% if request.GET.status == status.0 %}selected{% endif %}>{{ status.1 }}</option>
+                                {% endfor %}
                               </select>
                           </div>
                       </div>
@@ -367,19 +396,34 @@
                   </div>
                   <label for="sender_bank" class="form-label mt-2 fw-bold">Банк отправителя:</label>
                   <div class="input-group mb-3">
-                      <input type="text" class="form-control" id="sender_bank" name="sender_bank" placeholder="Название банка">
+                    <select class="form-select" id="sender_bank" name="sender_bank">
+                        <option selected>Выберете банк отправителя</option>
+                        {% for bank in banks %}
+                        <option value="{{ bank.id }}">{{ bank.name }}</option>
+                        {% endfor %}
+                    </select>
                   </div>
                   <label for="receiver_bank" class="form-label fw-bold">Банк получателя:</label>
                   <div class="input-group mb-3">
-                      <input type="text" class="form-control" id="receiver_bank" name="receiver_bank" placeholder="Название банка">
+                    <select class="form-select" id="receiver_bank" name="receiver_bank">
+                        <option value="">Выберите банк получателя</option>
+                        {% for bank in banks %}
+                          <option value="{{ bank.id }}" {% if request.GET.receiver_bank == bank.id|stringformat:"s"  %}selected{% endif %}>{{ bank.name }}</option>
+                        {% endfor %}
+                      </select>
                   </div>
                   <label for="receiver_inn" class="form-label fw-bold">ИНН:</label>
                   <div class="input-group mb-3">
-                      <input type="text" class="form-control" id="receiver_inn" name="receiver_inn" pattern="\d{11}" placeholder="012345678910" required>
+                      <input type="text" class="form-control" id="receiver_inn" name="receiver_inn" pattern="\d{10,12}" placeholder="012345678910" required>
                   </div>
                   <label for="category" class="form-label fw-bold">Категории:</label>
                   <div class="input-group mb-3">
-                      <input type="text" class="form-control" id="category" name="category" placeholder="Название категории">
+                    <select class="form-select" id="category" name="category">
+                        <option value="">Выберите категорию</option>
+                        {% for category in categories %}
+                          <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
                   </div>
                   <label for="receiver_phone" class="form-label fw-bold">Номер телефона:</label>
                   <div class="input-group mb-3">
@@ -455,24 +499,57 @@ document.addEventListener('DOMContentLoaded', function() {
             const comment = this.getAttribute('data-comment');
 
             // Заполняем поля формы значениями из атрибутов кнопки
-            document.getElementById('amount').value = amount;
-            document.getElementById('date_time').value = dateTime;
-            document.getElementById('type_person').value = transactionType;
-            document.getElementById('status').value = status;
-            document.getElementById('sender_bank').value = senderBank;
-            document.getElementById('receiver_bank').value = receiverBank;
-            document.getElementById('receiver_inn').value = receiverInn;
-            document.getElementById('receiver_phone').value = receiverPhone;
-            document.getElementById('category').value = category;
-            document.getElementById('comment').value = comment;
+            document.getElementById('amount_c').value = amount;
+            document.getElementById('date_time_c').value = dateTime;
+            document.getElementById('type_person_c').value = transactionType;
+            document.getElementById('status_c').value = status;
+            document.getElementById('sender_bank_c').value = senderBank;
+            document.getElementById('receiver_bank_c').value = receiverBank;
+            document.getElementById('receiver_inn_c').value = receiverInn;
+            document.getElementById('receiver_phone_c').value = receiverPhone;
+            document.getElementById('category_c').value = category;
+            document.getElementById('comment_c').value = comment;
 
             // Устанавливаем action формы с учетом ID транзакции
             const form = document.querySelector('#correctTransaction form');
-            form.action = `{% url 
-            {% comment %} 'update_transaction' transactionId  {% endcomment %}
-            %}`;
+            form.action = `/transactions/update/${transactionId}`;
         });
     });
+
+    // Обработчик для кнопок удаления транзакции
+    document.querySelectorAll('.delete-transaction-btn').forEach(button => {
+      button.addEventListener('click', function() {
+          const transactionDate = this.getAttribute('data-transaction-date');
+          const transactionAmount = this.getAttribute('data-transaction-amount');
+          const transactionId = this.getAttribute('data-transaction-id');
+
+          // Заполняем модальное окно данными из атрибутов кнопки
+          document.querySelector('#deleteConfirmation .modal-body').innerHTML = `
+              Вы точно хотите удалить транзакцию от ${transactionDate} на сумму ${transactionAmount} рублей?
+          `;
+
+          // Устанавливаем action формы с учетом ID транзакции
+          const form = document.querySelector('#deleteTransactionForm');
+          form.action = `/transactions/delete/${transactionId}`;
+      });
+  });
+
+    // Отображение модального окна с сообщениями
+    {% if messages %}
+        const messageModal = new bootstrap.Modal(document.getElementById('messageModal'));
+        let messageHtml = '';
+        {% for message in messages %}
+            messageHtml += `
+                <div class="alert-{{ message.tags }} fs-6">
+                    {{ message }}
+                </div>
+            `;
+        {% endfor %}
+        document.getElementById('messageModalBody').innerHTML = messageHtml;
+        messageModal.show();
+    {% endif %}
+
+
 });
 </script>
 {% endblock %}

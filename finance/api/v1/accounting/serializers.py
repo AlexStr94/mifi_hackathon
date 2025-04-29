@@ -19,6 +19,24 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class UpdateTransactionSerializer(serializers.ModelSerializer):
+    """Сериализация транзакций при создании."""
+
+    class Meta:
+        model = Transaction
+        fields = (
+            "type_person",
+            "date_time",
+            "comment",
+            "amount",
+            "status",
+            "sender_bank",
+            "receiver_bank",
+            "receiver_inn",
+            "receiver_phone",
+            "category",
+        )
+
 class CreateTransactionSerializer(serializers.ModelSerializer):
     """Сериализация транзакций при создании."""
 
