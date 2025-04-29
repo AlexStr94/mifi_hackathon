@@ -116,7 +116,9 @@ class TransactionUpdateView(View):
 
 
 class TransactionDeleteView(View):
-    def delete(self, request, id: int, *args, **kwargs):
-        Transaction.objects.get(id=id).delete()
-        messages.success(request, "Транзакция удалена")
+    def post(self, request, id: int, *args, **kwargs):
+        if request.POST.get('_method') == 'DELETE':
+            Transaction.objects.get(id=id).delete()
+            messages.success(request, "Транзакция удалена")
+            return redirect("accounting:transactions")
         return redirect("accounting:transactions")
