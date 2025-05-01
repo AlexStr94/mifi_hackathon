@@ -1,5 +1,7 @@
 from django.db import models
 
+from audit.models import UpdatedByModel
+
 
 class Bank(models.Model):
     name = models.CharField(
@@ -38,9 +40,9 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-    
 
-class Transaction(models.Model):
+
+class Transaction(UpdatedByModel):
     PERSON_TYPES = (
         ("company", "Юридическое лицо"),
         ("person", "Физическое лицо"),

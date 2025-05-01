@@ -37,6 +37,7 @@ class UpdateTransactionSerializer(serializers.ModelSerializer):
             "category",
         )
 
+
 class CreateTransactionSerializer(serializers.ModelSerializer):
     """Сериализация транзакций при создании."""
 
@@ -70,6 +71,7 @@ class RetrieveTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = (
+            "id",
             "user",
             "type_person",
             "date_time",

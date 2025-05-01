@@ -26,7 +26,16 @@ class TransactionViewSet(ModelViewSet):
         return RetrieveTransactionSerializer
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        user = self.request.user
+        serializer.save(user=user, updated_by=user)
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        serializer.save(user=user, updated_by=user)
+
+    def perform_destroy(self, instance):
+        instance.updated_by = self.request.user
+        instance.delete()
 
 
 class BankViewSet(ReadOnlyModelViewSet):
