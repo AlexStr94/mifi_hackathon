@@ -14,12 +14,12 @@ services:
       timeout: 5s
       retries: 5
 
-
   django-web:
    image: ${IMAGE_REF}
    container_name: django-docker
    depends_on:
      - postgres
+     - redis
    volumes:
      - static_volume:/finance/static
    environment:
@@ -50,6 +50,11 @@ services:
       - static_volume:/finance/static:ro
     depends_on:
       - django-web
+  
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres_data:
