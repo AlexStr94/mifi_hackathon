@@ -41,6 +41,30 @@ class Category(models.Model):
     
 
 class Transaction(models.Model):
+    NEW_TRANSACTION = "new"
+    CONFIRMED_TRANSACTION = "confirmed"
+    IN_PROCESS_TRANSACTION = "in_process"
+    CANCELED_TRANSACTION = "canceled"
+    COMPLETED_TRANSACTION = "completed"
+    DELETED_TRANSACTION = "deleted"
+    REFUND_TRANSACTION = "refund"
+    NOT_UPDATABLE_STATUSES = (
+        CONFIRMED_TRANSACTION,
+        IN_PROCESS_TRANSACTION,
+        CANCELED_TRANSACTION,
+        COMPLETED_TRANSACTION,
+        DELETED_TRANSACTION,
+        REFUND_TRANSACTION
+    )
+    TRANSACTION_STATUSES = (
+        (NEW_TRANSACTION, 'Новая'),
+        (CONFIRMED_TRANSACTION, 'Подтвержденная'),
+        (IN_PROCESS_TRANSACTION, 'В обработке'),
+        (CANCELED_TRANSACTION, 'Отменена'),
+        (COMPLETED_TRANSACTION, 'Платеж выполнен'),
+        (DELETED_TRANSACTION, 'Платеж удален'),
+        (REFUND_TRANSACTION, 'Возврат')
+    )
     PERSON_TYPES = (
         ("company", "Юридическое лицо"),
         ("person", "Физическое лицо"),
@@ -48,15 +72,6 @@ class Transaction(models.Model):
     TRANSACTION_TYPES = (
         ("entry", "Поступление"),
         ("write-off", "Списание"),
-    )
-    TRANSACTION_STATUSES = (
-        ('new', 'Новая'),
-        ('confirmed', 'Подтвержденная'),
-        ('in_process', 'В обработке'),
-        ('canceled', 'Отменена'),
-        ('completed', 'Платеж выполнен'),
-        ('deleted', 'Платеж удален'),
-        ('refund', 'Возврат')
     )
     user = models.ForeignKey(
         "users.User",
@@ -115,3 +130,9 @@ class Transaction(models.Model):
         on_delete=models.PROTECT,
         related_name="transactions",
     )
+
+    @property
+    def updatable(self) -> bool:
+        if self.status in self.NOT_UPDATABLE_STATUSES:
+            return False
+        return True

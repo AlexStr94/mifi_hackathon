@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from accounting.models import Bank, Category, Transaction
 
@@ -36,6 +37,12 @@ class UpdateTransactionSerializer(serializers.ModelSerializer):
             "receiver_phone",
             "category",
         )
+
+    def update(self, instance, validated_data):
+        if instance.status in Transaction.NOT_UPDATABLE_STATUSES:
+            raise ValidationError(f"Нельзя редактировать транзакцию со статусом {instance.get_status_display()}")
+        return super().update(instance, validated_data)
+
 
 class CreateTransactionSerializer(serializers.ModelSerializer):
     """Сериализация транзакций при создании."""
@@ -82,4 +89,5 @@ class RetrieveTransactionSerializer(serializers.ModelSerializer):
             "receiver_inn",
             "receiver_phone",
             "category",
+            "updatable",
         )
