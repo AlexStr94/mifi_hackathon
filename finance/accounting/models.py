@@ -1,7 +1,9 @@
 from django.db import models
 
+from audit.models import UpdatedByModel
 
-class Bank(models.Model):
+
+class Bank(UpdatedByModel):
     name = models.CharField(
         "Наименования банка",
         max_length=256,
@@ -17,7 +19,7 @@ class Bank(models.Model):
         return self.name
 
 
-class Category(models.Model):
+class Category(UpdatedByModel):
     name = models.CharField(
         "Название категории.",
         max_length=128,
@@ -38,9 +40,9 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-    
 
-class Transaction(models.Model):
+
+class Transaction(UpdatedByModel):
     NEW_TRANSACTION = "new"
     CONFIRMED_TRANSACTION = "confirmed"
     IN_PROCESS_TRANSACTION = "in_process"
@@ -136,3 +138,6 @@ class Transaction(models.Model):
         if self.status in self.NOT_UPDATABLE_STATUSES:
             return False
         return True
+
+    def __str__(self):
+        return f"Транзакция {self.id}"

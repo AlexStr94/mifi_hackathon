@@ -91,7 +91,7 @@ class TransactionCreateView(View):
         data = {key: value[0] for key, value in request.POST.lists()}
         serializer = CreateTransactionSerializer(data=data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            serializer.save(user=request.user, updated_by=request.user)
             messages.success(request, "Транзакция добавлена.")
         else:
             messages.error(request, "Ошибка добавления транзакции.")
@@ -104,7 +104,7 @@ class TransactionUpdateView(View):
         data = {key: value[0] for key, value in request.POST.lists()}
         serializer = UpdateTransactionSerializer(transaction, data=data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(updated_by=request.user)
             messages.success(request, "Транзакция обновлена.")
         else:
             messages.error(request, "Ошибка обновления транзакции.")
@@ -114,7 +114,9 @@ class TransactionUpdateView(View):
 class TransactionDeleteView(View):
     def post(self, request, id: int, *args, **kwargs):
         if request.POST.get('_method') == 'DELETE':
-            Transaction.objects.get(id=id).delete()
+            transaction = Transaction.objects.get(id=id)
+            transaction.updated_by = request.user
+            transaction.delete()
             messages.success(request, "Транзакция удалена")
             return redirect("accounting:transactions")
         return redirect("accounting:transactions")

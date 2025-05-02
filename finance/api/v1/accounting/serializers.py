@@ -77,6 +77,7 @@ class RetrieveTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = (
+            "id",
             "user",
             "type_person",
             "date_time",
