@@ -3,7 +3,7 @@ from django.db import models
 from audit.models import UpdatedByModel
 
 
-class Bank(models.Model):
+class Bank(UpdatedByModel):
     name = models.CharField(
         "Наименования банка",
         max_length=256,
@@ -19,7 +19,7 @@ class Bank(models.Model):
         return self.name
 
 
-class Category(models.Model):
+class Category(UpdatedByModel):
     name = models.CharField(
         "Название категории.",
         max_length=128,
@@ -117,3 +117,6 @@ class Transaction(UpdatedByModel):
         on_delete=models.PROTECT,
         related_name="transactions",
     )
+
+    def __str__(self):
+        return f"Транзакция {self.id}"

@@ -5,7 +5,7 @@ from typing import Any
 from django.db.models import Model
 from django.db.models.signals import pre_save, post_delete
 
-from accounting.models import Transaction
+from accounting.models import Bank, Category, Transaction
 from .models import AuditLog
 
 
@@ -56,3 +56,7 @@ def log_delete(sender, instance, **kwargs):
 
 pre_save.connect(log_create_update, sender=Transaction)
 post_delete.connect(log_delete, Transaction)
+pre_save.connect(log_create_update, sender=Bank)
+post_delete.connect(log_delete, Bank)
+pre_save.connect(log_create_update, sender=Category)
+post_delete.connect(log_delete, Category)
