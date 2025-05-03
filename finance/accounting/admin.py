@@ -9,13 +9,13 @@ class BankAdmin(UpdatedByAdminModel):
     pass
 
 
-@admin.register(UpdatedByAdminModel)
-class CategoryAdmin(admin.ModelAdmin):
+@admin.register(models.Category)
+class CategoryAdmin(UpdatedByAdminModel):
     pass
 
 
-@admin.register(UpdatedByAdminModel)
-class TransactionAdmin(admin.ModelAdmin):
+@admin.register(models.Transaction)
+class TransactionAdmin(UpdatedByAdminModel):
     list_display = (
         "user",
         "transaction_type",
