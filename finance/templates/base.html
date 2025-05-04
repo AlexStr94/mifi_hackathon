@@ -39,16 +39,6 @@
                         <i class="fas fa-chart-line"></i> Дашборд
                     </a>
                 </li>
-                <li class="nav-item dropdown {% block dropdown %}{% endblock %}">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Заготовка
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Action</a></li>
-                        <li><a class="dropdown-item" href="#">Another action</a></li>
-                        <li><a class="dropdown-item" href="#">Something else here</a></li>
-                    </ul>
-                </li>
             </ul>
             <ul class="navbar-nav ms-auto">
               {% if user.is_authenticated %}
