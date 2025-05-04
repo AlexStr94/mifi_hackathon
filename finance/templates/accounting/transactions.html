@@ -12,6 +12,10 @@
         text-align: center;
         vertical-align: middle;
     }
+
+    .btn.disabled {
+      pointer-events: auto;
+    }
 {% endblock %}
 
 {% block content %}
@@ -165,30 +169,38 @@
             <td>
                 <div aria-label="Transaction operations">
                   <div class="d-flex flex-row">
-                    <button type="button" class="btn btn-warning text-white edit-transaction-btn"
-                            data-bs-toggle="modal"
-                            data-bs-target="#correctTransaction"
-                            data-transaction-id="{{ transaction.id }}"
-                            data-amount="{{ transaction.amount|floatformat:2 }}"
-                            data-date-time="{{ transaction.date_time|date:"Y-m-d\TH:i" }}"
-                            data-status="{{ transaction.status }}"
-                            data-type-person="{{ transaction.type_person }}"
-                            data-sender-bank="{{ transaction.sender_bank.id }}"
-                            data-receiver-bank="{{ transaction.receiver_bank.id }}"
-                            data-receiver-inn="{{ transaction.receiver_inn }}"
-                            data-receiver-phone="{{ transaction.receiver_phone }}"
-                            data-category="{{ transaction.category.id }}"
-                            data-comment="{{ transaction.comment }}">
-                        <i class="bi bi-pencil-square"></i>
-                    </button>
-                    <button type="button" class="btn ms-2 btn-danger delete-transaction-btn"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteConfirmation"
-                      data-transaction-date="{{ transaction.date_time|date:"d.m.Y H:i" }}"
-                      data-transaction-amount="{{ transaction.amount|floatformat:2 }}"
-                      data-transaction-id="{{ transaction.id }}">
-                      <i class="bi bi-trash"></i>
-                    </button>
+                    <span class="d-inline-block" tabindex="0"                               
+                    {% if not transaction.updatable %} data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Транзакция недоступна к редактированию" {% endif %}>
+                      <button type="button" class="btn btn-warning text-white edit-transaction-btn" 
+                              data-bs-toggle="modal"
+                              data-bs-target="#correctTransaction"
+                              data-transaction-id="{{ transaction.id }}"
+                              data-amount="{{ transaction.amount|floatformat:2 }}"
+                              data-date-time="{{ transaction.date_time|date:"Y-m-d\TH:i" }}"
+                              data-status="{{ transaction.status }}"
+                              data-type-person="{{ transaction.type_person }}"
+                              data-sender-bank="{{ transaction.sender_bank.id }}"
+                              data-receiver-bank="{{ transaction.receiver_bank.id }}"
+                              data-receiver-inn="{{ transaction.receiver_inn }}"
+                              data-receiver-phone="{{ transaction.receiver_phone }}"
+                              data-category="{{ transaction.category.id }}"
+                              data-comment="{{ transaction.comment }}"
+                              {% if not transaction.updatable %}disabled {% endif %}>
+                              <i class="bi bi-pencil-square"></i>
+                      </button>
+                    </span>
+                    <span class="d-inline-block" tabindex="0"                               
+                    {% if not transaction.updatable %} data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Транзакция недоступна к удалению" {% endif %}>
+                      <button type="button" class="btn ms-2 btn-danger delete-transaction-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#deleteConfirmation"
+                        data-transaction-date="{{ transaction.date_time|date:"d.m.Y H:i" }}"
+                        data-transaction-amount="{{ transaction.amount|floatformat:2 }}"
+                        data-transaction-id="{{ transaction.id }}"
+                        {% if not transaction.updatable %}disabled{% endif %}>
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </span>
                   </div>
                 </div>
             </td>
@@ -549,7 +561,9 @@ document.addEventListener('DOMContentLoaded', function() {
         messageModal.show();
     {% endif %}
 
-
+    // Инициализация всплывающих подсказок
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 });
 </script>
 {% endblock %}
