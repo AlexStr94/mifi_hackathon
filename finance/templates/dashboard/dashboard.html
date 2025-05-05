@@ -197,21 +197,24 @@ function initTransactionDynamicsChart() {
 
 // Обновление графика динамики транзакций
 function updateTransactionDynamicsChart(period) {
-    showLoading('transactionDynamicsChart');
     fetch(`/dashboard/transaction-dynamics/?period=${period}`)
         .then(response => response.json())
         .then(data => {
-            const labels = data.map(item => item.date || item.week || item.month);
-            const counts = data.map(item => item.count);
-            const amounts = data.map(item => item.total_amount);
+            const labels = data.map(item => {
+                if (period === 'week') {
+                    return new Date(item.period_group).toLocaleDateString();
+                } else if (period === 'month') {
+                    return `Week ${item.week}, ${item.year}`;
+                } else {
+                    return `${new Date(item.year, item.month-1).toLocaleString('default', {month: 'long'})} ${item.year}`;
+                }
+            });
 
+            // Обновление графика
             charts.transactionDynamics.data.labels = labels;
-            charts.transactionDynamics.data.datasets[0].data = counts;
-            charts.transactionDynamics.data.datasets[1].data = amounts;
+            charts.transactionDynamics.data.datasets[0].data = data.map(d => d.count);
+            charts.transactionDynamics.data.datasets[1].data = data.map(d => d.total_amount);
             charts.transactionDynamics.update();
-        })
-        .catch(error => {
-            console.error('Error:', error);
         });
 }
 
