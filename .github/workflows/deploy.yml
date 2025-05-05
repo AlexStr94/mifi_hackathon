@@ -48,7 +48,7 @@ jobs:
         env:
           IMAGE_REF: ${{ steps.meta.outputs.tags }}
         run: |
-          DOCKER_CONTEXT=remote docker rm -f django-docker || true
+          DOCKER_CONTEXT=remote docker rm -f django-web || true
           DOCKER_CONTEXT=remote docker image rm -f ${{ env.IMAGE_REF }} || true
           DOCKER_CONTEXT=remote docker compose pull
           DOCKER_CONTEXT=remote docker compose -f docker-compose.yml up -d
