@@ -20,26 +20,40 @@ def serialize_model_field(field_value: Any) -> Any:
 
 
 def log_create_update(sender, instance, **kwargs):
-    previous = sender.objects.get(id=instance.id)
     changes = {}
+
     if instance.id is None:
+        # CREATE action - new object
         action = AuditLog.CREATE_ACTION
-    else:
-        action = AuditLog.UPDATE_ACTION
+        # For new objects, all fields are considered as changes
         for field in sender._meta.fields:
-            previous_value = getattr(previous, field.name)
             new_value = getattr(instance, field.name)
-            if previous_value != new_value:
-                changes[field.name] = {
-                    "previous": previous_value,
-                    "new_value": new_value,
-                }
+            changes[field.name] = {
+                "previous": None,
+                "new_value": new_value,
+            }
+    else:
+        # UPDATE action - existing object
+        action = AuditLog.UPDATE_ACTION
+        try:
+            previous = sender.objects.get(id=instance.id)
+            for field in sender._meta.fields:
+                previous_value = getattr(previous, field.name)
+                new_value = getattr(instance, field.name)
+                if previous_value != new_value:
+                    changes[field.name] = {
+                        "previous": previous_value,
+                        "new_value": new_value,
+                    }
+        except sender.DoesNotExist:
+            # Fallback if object was deleted concurrently
+            return
 
     AuditLog.objects.create(
         user=instance.updated_by,
         action=action,
         entity=sender.__name__,
-        obj_id=instance.pk,
+        obj_id=instance.pk if instance.id else 'new',
         changes=json.dumps(obj=changes, default=serialize_model_field),
     )
 

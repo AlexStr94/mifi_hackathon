@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from django.utils import timezone
 from django.db.models import Count, Sum, Q
+from django.db.models.functions import (
+    TruncDate, TruncWeek, ExtractWeek, ExtractMonth, ExtractYear
+)
 from django.http import JsonResponse
 from accounting.models import Transaction
 from datetime import timedelta
@@ -22,42 +25,64 @@ def transaction_dynamics(request):
     period = request.GET.get("period", "week")
     now = timezone.now()
 
-    # Определяем период для выборки
+    print(f"\n=== Requested period: {period} ===")
+
     if period == "week":
         date_from = now - timedelta(days=7)
-        group_by = "date"
+        transactions = Transaction.objects.filter(
+            user=request.user,
+            date_time__gte=date_from
+        ).annotate(
+            period_group=TruncDate('date_time'),
+            year=ExtractYear('date_time')
+        )
+        group_field = 'period_group'
     elif period == "month":
         date_from = now - timedelta(days=30)
-        group_by = "week"
+        transactions = Transaction.objects.filter(
+            user=request.user,
+            date_time__gte=date_from
+        ).annotate(
+            week=ExtractWeek('date_time'),
+            year=ExtractYear('date_time')
+        )
+        group_field = 'week'
     elif period == "quarter":
         date_from = now - relativedelta(months=3)
-        group_by = "month"
+        transactions = Transaction.objects.filter(
+            user=request.user,
+            date_time__gte=date_from
+        ).annotate(
+            month=ExtractMonth('date_time'),
+            year=ExtractYear('date_time')
+        )
+        group_field = 'month'
     else:  # year
         date_from = now - relativedelta(years=1)
-        group_by = "month"
-
-    # Ключ для кэширования
-    cache_key = f"transaction_dynamics_{request.user.id}_{period}"
-    cached_data = cache.get(cache_key)
-
-    if cached_data:
-        return JsonResponse(cached_data, safe=False)
-
-    transactions = (
-        Transaction.objects.filter(user=request.user, date_time__gte=date_from)
-        .extra(
-            select={
-                "date": "date(date_time)",
-                "week": "EXTRACT(week FROM date_time)",
-                "month": "EXTRACT(month FROM date_time)",
-            }
+        transactions = Transaction.objects.filter(
+            user=request.user,
+            date_time__gte=date_from
+        ).annotate(
+            month=ExtractMonth('date_time'),
+            year=ExtractYear('date_time')
         )
-        .values(group_by)
-        .annotate(count=Count("id"), total_amount=Sum("amount"))
-        .order_by(group_by)
+        group_field = 'month'
+
+    result = list(
+        transactions.values(group_field, 'year')
+        .annotate(
+            count=Count("id"),
+            total_amount=Sum("amount")
+        )
+        .order_by('year', group_field)
     )
-    result = list(transactions)
-    cache.set(cache_key, result, CACHE_TIMEOUT)
+
+    print(f"Found {len(result)} records for period {period}")
+    if result:
+        print("First 3 records:", result[:3])
+    else:
+        print("No data found for this period")
+
     return JsonResponse(result, safe=False)
 
 
@@ -183,25 +208,31 @@ def dashboard_view(request):
     if not request.user.is_authenticated:
         return render(request, "registration/login.html")
 
-    # Получаем последние 5 транзакций для быстрого просмотра
-    recent_transactions = Transaction.objects.filter(user=request.user).select_related(
-        "sender_bank", "receiver_bank", "category"
-    )[:5]
+    print("\n=== Loading dashboard ===")
+    print(f"User: {request.user.username}")
 
-    # Основные метрики
+    recent_transactions = Transaction.objects.filter(
+        user=request.user
+    ).select_related("sender_bank", "receiver_bank", "category")[:5]
+
+    print(f"Recent transactions count: {recent_transactions.count()}")
+
     total_income = (
         Transaction.objects.filter(
-            user=request.user, transaction_type="entry"
-        ).aggregate(total=Sum("amount"))["total"]
-        or 0
+            user=request.user,
+            transaction_type="entry"
+        ).aggregate(total=Sum("amount"))["total"] or 0
     )
 
     total_expense = (
         Transaction.objects.filter(
-            user=request.user, transaction_type="write-off"
-        ).aggregate(total=Sum("amount"))["total"]
-        or 0
+            user=request.user,
+            transaction_type="write-off"
+        ).aggregate(total=Sum("amount"))["total"] or 0
     )
+
+    print(f"Total income: {total_income}")
+    print(f"Total expense: {total_expense}")
 
     context = {
         "recent_transactions": recent_transactions,
